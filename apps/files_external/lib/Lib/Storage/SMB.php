@@ -620,7 +620,13 @@ class SMB extends Common implements INotifyStorage {
 	}
 
 	public function getDirectoryContent($directory): \Traversable {
-		$files = $this->getFolderContents($directory);
+		try {
+			$files = $this->getFolderContents($directory);
+		} catch (NotFoundException $e) {
+			return;
+		} catch (NotPermittedException $e) {
+			return;
+		}
 		foreach ($files as $file) {
 			yield $this->getMetaDataFromFileInfo($file);
 		}
