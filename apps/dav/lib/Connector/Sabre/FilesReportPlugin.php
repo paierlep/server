@@ -166,7 +166,7 @@ class FilesReportPlugin extends ServerPlugin {
 	 * @param string $uri
 	 * @return array
 	 */
-	public function getSupportedReportSet($uri) {
+	public function getSupportedReportSet($uri): array {
 		return [self::REPORT_NAME];
 	}
 
@@ -179,7 +179,7 @@ class FilesReportPlugin extends ServerPlugin {
 	 * @return bool|void
 	 * @throws BadRequest
 	 * @throws NotFound
-	 * @throws PreconditionFailed
+	 * @throws PreconditionFailed|NotFoundException
 	 * @internal param $ [] $report
 	 */
 	public function onReport(string $reportName, array $report, string $uri) {

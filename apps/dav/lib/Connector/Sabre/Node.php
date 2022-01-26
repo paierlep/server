@@ -63,7 +63,7 @@ abstract class Node implements INode {
 	/**
 	 * The path to the current node
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	protected $path;
 
@@ -75,7 +75,7 @@ abstract class Node implements INode {
 	protected $property_cache = null;
 
 	/**
-	 * @var FileInfo
+	 * @var FileInfo|null
 	 */
 	protected $info;
 
@@ -90,6 +90,8 @@ abstract class Node implements INode {
 	 * @param View $view
 	 * @param FileInfo $info
 	 * @param IManager|null $shareManager
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
 	 */
 	public function __construct(View $view, FileInfo $info, IManager $shareManager = null) {
 		$this->fileView = $view;
@@ -120,7 +122,7 @@ abstract class Node implements INode {
 	 *
 	 * @return string
 	 */
-	public function getPath(): string {
+	public function getPath(): ?string {
 		return $this->path;
 	}
 
@@ -233,7 +235,7 @@ abstract class Node implements INode {
 	 *
 	 * @return int
 	 */
-	public function getId(): int {
+	public function getId(): ?int {
 		return $this->info->getId();
 	}
 
@@ -253,7 +255,7 @@ abstract class Node implements INode {
 	/**
 	 * @return integer
 	 */
-	public function getInternalFileId(): int {
+	public function getInternalFileId(): ?int {
 		return $this->info->getId();
 	}
 
@@ -416,7 +418,7 @@ abstract class Node implements INode {
 		$this->fileView->changeLock($this->path, $type);
 	}
 
-	public function getFileInfo(): FileInfo {
+	public function getFileInfo(): ?FileInfo {
 		return $this->info;
 	}
 

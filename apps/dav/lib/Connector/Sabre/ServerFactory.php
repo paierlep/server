@@ -57,6 +57,7 @@ use OCP\SystemTag\ISystemTagObjectMapper;
 use Psr\Log\LoggerInterface;
 use Sabre\DAV\Auth\Plugin;
 use Sabre\DAV\Exception;
+use Sabre\DAV\SimpleCollection;
 
 class ServerFactory {
 	/** @var IConfig */
@@ -129,7 +130,7 @@ class ServerFactory {
 								 Plugin   $authPlugin,
 								 callable $viewCallBack): Server {
 		// Fire up server
-		$objectTree = new ObjectTree();
+		$objectTree = new ObjectTree(new SimpleCollection('root'));
 		$server = new Server($objectTree);
 		// Set URL explicitly due to reverse-proxy situations
 		$server->httpRequest->setUrl($requestUri);
