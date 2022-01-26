@@ -24,8 +24,13 @@
  */
 namespace OCA\DAV\Tests\unit\Connector\Sabre\RequestTest;
 
+use OCA\DAV\Connector\Sabre\Exception\FileLocked;
 use OCP\AppFramework\Http;
 use OCP\Lock\ILockingProvider;
+use OCP\Lock\LockedException;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
+use Throwable;
 
 /**
  * Class UploadTest
@@ -35,6 +40,12 @@ use OCP\Lock\ILockingProvider;
  * @package OCA\DAV\Tests\unit\Connector\Sabre\RequestTest
  */
 class UploadTest extends RequestTestCase {
+	/**
+	 * @throws Throwable
+	 * @throws NotFoundExceptionInterface
+	 * @throws ContainerExceptionInterface
+	 * @throws LockedException
+	 */
 	public function testBasicUpload() {
 		$user = $this->getUniqueID();
 		$view = $this->setupUser($user, 'pass');
@@ -51,6 +62,12 @@ class UploadTest extends RequestTestCase {
 		$this->assertEquals(3, $info->getSize());
 	}
 
+	/**
+	 * @throws NotFoundExceptionInterface
+	 * @throws Throwable
+	 * @throws ContainerExceptionInterface
+	 * @throws LockedException
+	 */
 	public function testUploadOverWrite() {
 		$user = $this->getUniqueID();
 		$view = $this->setupUser($user, 'pass');
@@ -67,6 +84,12 @@ class UploadTest extends RequestTestCase {
 		$this->assertEquals(3, $info->getSize());
 	}
 
+	/**
+	 * @throws Throwable
+	 * @throws NotFoundExceptionInterface
+	 * @throws ContainerExceptionInterface
+	 * @throws LockedException
+	 */
 	public function testUploadOverWriteReadLocked() {
 		$user = $this->getUniqueID();
 		$view = $this->setupUser($user, 'pass');
@@ -79,6 +102,12 @@ class UploadTest extends RequestTestCase {
 		$this->assertEquals(Http::STATUS_LOCKED, $result->getStatus());
 	}
 
+	/**
+	 * @throws NotFoundExceptionInterface
+	 * @throws Throwable
+	 * @throws ContainerExceptionInterface
+	 * @throws LockedException
+	 */
 	public function testUploadOverWriteWriteLocked() {
 		$user = $this->getUniqueID();
 		$view = $this->setupUser($user, 'pass');
@@ -92,6 +121,12 @@ class UploadTest extends RequestTestCase {
 		$this->assertEquals(Http::STATUS_LOCKED, $result->getStatus());
 	}
 
+	/**
+	 * @throws Throwable
+	 * @throws NotFoundExceptionInterface
+	 * @throws ContainerExceptionInterface
+	 * @throws LockedException
+	 */
 	public function testChunkedUpload() {
 		$user = $this->getUniqueID();
 		$view = $this->setupUser($user, 'pass');
@@ -114,6 +149,12 @@ class UploadTest extends RequestTestCase {
 		$this->assertEquals(6, $info->getSize());
 	}
 
+	/**
+	 * @throws Throwable
+	 * @throws NotFoundExceptionInterface
+	 * @throws ContainerExceptionInterface
+	 * @throws LockedException
+	 */
 	public function testChunkedUploadOverWrite() {
 		$user = $this->getUniqueID();
 		$view = $this->setupUser($user, 'pass');
@@ -135,6 +176,12 @@ class UploadTest extends RequestTestCase {
 		$this->assertEquals(6, $info->getSize());
 	}
 
+	/**
+	 * @throws Throwable
+	 * @throws NotFoundExceptionInterface
+	 * @throws ContainerExceptionInterface
+	 * @throws LockedException
+	 */
 	public function testChunkedUploadOutOfOrder() {
 		$user = $this->getUniqueID();
 		$view = $this->setupUser($user, 'pass');
@@ -157,6 +204,12 @@ class UploadTest extends RequestTestCase {
 		$this->assertEquals(6, $info->getSize());
 	}
 
+	/**
+	 * @throws NotFoundExceptionInterface
+	 * @throws Throwable
+	 * @throws ContainerExceptionInterface
+	 * @throws LockedException
+	 */
 	public function testChunkedUploadOutOfOrderReadLocked() {
 		$user = $this->getUniqueID();
 		$view = $this->setupUser($user, 'pass');
@@ -167,9 +220,8 @@ class UploadTest extends RequestTestCase {
 
 		try {
 			$response = $this->request($view, $user, 'pass', 'PUT', '/foo.txt-chunking-123-2-1', 'bar', ['OC-Chunked' => '1']);
-		} catch (\OCA\DAV\Connector\Sabre\Exception\FileLocked $e) {
+		} catch (FileLocked $e) {
 			$this->fail('Didn\'t expect locked error for the first chunk on read lock');
-			return;
 		}
 
 		$this->assertEquals(Http::STATUS_CREATED, $response->getStatus());
@@ -180,6 +232,12 @@ class UploadTest extends RequestTestCase {
 		$this->assertEquals(Http::STATUS_LOCKED, $result->getStatus());
 	}
 
+	/**
+	 * @throws NotFoundExceptionInterface
+	 * @throws Throwable
+	 * @throws ContainerExceptionInterface
+	 * @throws LockedException
+	 */
 	public function testChunkedUploadOutOfOrderWriteLocked() {
 		$user = $this->getUniqueID();
 		$view = $this->setupUser($user, 'pass');
@@ -190,9 +248,8 @@ class UploadTest extends RequestTestCase {
 
 		try {
 			$response = $this->request($view, $user, 'pass', 'PUT', '/foo.txt-chunking-123-2-1', 'bar', ['OC-Chunked' => '1']);
-		} catch (\OCA\DAV\Connector\Sabre\Exception\FileLocked $e) {
+		} catch (FileLocked $e) {
 			$this->fail('Didn\'t expect locked error for the first chunk on write lock'); // maybe forbid this in the future for write locks only?
-			return;
 		}
 
 		$this->assertEquals(Http::STATUS_CREATED, $response->getStatus());

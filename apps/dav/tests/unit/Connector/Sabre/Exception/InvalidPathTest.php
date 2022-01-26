@@ -23,13 +23,19 @@
  */
 namespace OCA\DAV\Tests\unit\Connector\Sabre\Exception;
 
+use DOMDocument;
+use DOMException;
 use OCA\DAV\Connector\Sabre\Exception\InvalidPath;
+use Test\TestCase;
 
-class InvalidPathTest extends \Test\TestCase {
+class InvalidPathTest extends TestCase {
+	/**
+	 * @throws DOMException
+	 */
 	public function testSerialization() {
 
 		// create xml doc
-		$DOM = new \DOMDocument('1.0','utf-8');
+		$DOM = new DOMDocument('1.0','utf-8');
 		$DOM->formatOutput = true;
 		$error = $DOM->createElementNS('DAV:','d:error');
 		$error->setAttribute('xmlns:s', \Sabre\DAV\Server::NS_SABREDAV);
@@ -37,7 +43,6 @@ class InvalidPathTest extends \Test\TestCase {
 
 		// serialize the exception
 		$message = "1234567890";
-		$retry = false;
 		$expectedXml = <<<EOD
 <?xml version="1.0" encoding="utf-8"?>
 <d:error xmlns:d="DAV:" xmlns:s="http://sabredav.org/ns" xmlns:o="http://owncloud.org/ns">
@@ -47,7 +52,7 @@ class InvalidPathTest extends \Test\TestCase {
 
 EOD;
 
-		$ex = new InvalidPath($message, $retry);
+		$ex = new InvalidPath($message, false);
 		$server = $this->getMockBuilder('Sabre\DAV\Server')
 			->disableOriginalConstructor()
 			->getMock();

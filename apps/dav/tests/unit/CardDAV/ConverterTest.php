@@ -38,7 +38,7 @@ use Test\TestCase;
 
 class ConverterTest extends TestCase {
 
-	/** @var IAccountManager|\PHPUnit\Framework\MockObject\MockObject */
+	/** @var IAccountManager|MockObject */
 	private $accountManager;
 
 	protected function setUp(): void {
@@ -119,12 +119,12 @@ class ConverterTest extends TestCase {
 				}
 			}
 			if (!$found) {
-				$this->assertTrue(false, 'Expected data: ' . $key . ' not found.');
+				$this->fail('Expected data: ' . $key . ' not found.');
 			}
 		}
 	}
 
-	public function providesNewUsers() {
+	public function providesNewUsers(): array {
 		return [
 			[
 				null
@@ -190,7 +190,7 @@ class ConverterTest extends TestCase {
 		$this->assertEquals($expected, $r);
 	}
 
-	public function providesNames() {
+	public function providesNames(): array {
 		return [
 			['Sauron;;;;', 'Sauron'],
 			['Baggins;Bilbo;;;', 'Bilbo Baggins'],
@@ -199,10 +199,7 @@ class ConverterTest extends TestCase {
 	}
 
 	/**
-	 * @param $displayName
-	 * @param $eMailAddress
-	 * @param $cloudId
-	 * @return IUser | \PHPUnit\Framework\MockObject\MockObject
+	 * @return IUser | MockObject
 	 */
 	protected function getUserMock(string $displayName, ?string $eMailAddress, ?string $cloudId) {
 		$image0 = $this->getMockBuilder(IImage::class)->disableOriginalConstructor()->getMock();

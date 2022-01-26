@@ -26,6 +26,9 @@
  */
 namespace OCA\DAV\Tests\unit\Comments;
 
+use DateInterval;
+use DateTime;
+use Exception;
 use OCA\DAV\Comments\CommentNode;
 use OCP\Comments\IComment;
 use OCP\Comments\ICommentsManager;
@@ -33,38 +36,42 @@ use OCP\Comments\MessageTooLongException;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
+use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
+use Sabre\DAV\Exception\BadRequest;
+use Sabre\DAV\Exception\Forbidden;
+use Sabre\DAV\Exception\MethodNotAllowed;
 use Sabre\DAV\PropPatch;
+use Test\TestCase;
 
-class CommentsNodeTest extends \Test\TestCase {
+class CommentsNodeTest extends TestCase {
 
-	/** @var  ICommentsManager|\PHPUnit\Framework\MockObject\MockObject */
+	/** @var  ICommentsManager|MockObject */
 	protected $commentsManager;
 
+	/** @var IComment|MockObject */
 	protected $comment;
+
+	/** @var CommentNode */
 	protected $node;
+
+	/** @var IUserManager|MockObject */
 	protected $userManager;
+
+	/** @var LoggerInterface|MockObject */
 	protected $logger;
+
+	/** @var IUserSession|MockObject */
 	protected $userSession;
 
 	protected function setUp(): void {
 		parent::setUp();
 
-		$this->commentsManager = $this->getMockBuilder(ICommentsManager::class)
-			->disableOriginalConstructor()
-			->getMock();
-		$this->comment = $this->getMockBuilder(IComment::class)
-			->disableOriginalConstructor()
-			->getMock();
-		$this->userManager = $this->getMockBuilder(IUserManager::class)
-			->disableOriginalConstructor()
-			->getMock();
-		$this->userSession = $this->getMockBuilder(IUserSession::class)
-			->disableOriginalConstructor()
-			->getMock();
-		$this->logger = $this->getMockBuilder(LoggerInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$this->commentsManager = $this->createMock(ICommentsManager::class);
+		$this->comment = $this->createMock(IComment::class);
+		$this->userManager = $this->createMock(IUserManager::class);
+		$this->userSession = $this->createMock(IUserSession::class);
+		$this->logger = $this->createMock(LoggerInterface::class);
 
 		$this->node = new CommentNode(
 			$this->commentsManager,
@@ -109,7 +116,7 @@ class CommentsNodeTest extends \Test\TestCase {
 
 
 	public function testDeleteForbidden() {
-		$this->expectException(\Sabre\DAV\Exception\Forbidden::class);
+		$this->expectException(Forbidden::class);
 
 		$user = $this->getMockBuilder(IUser::class)
 			->disableOriginalConstructor()
@@ -151,15 +158,18 @@ class CommentsNodeTest extends \Test\TestCase {
 
 
 	public function testSetName() {
-		$this->expectException(\Sabre\DAV\Exception\MethodNotAllowed::class);
+		$this->expectException(MethodNotAllowed::class);
 
 		$this->node->setName('666');
 	}
 
 	public function testGetLastModified() {
-		$this->assertSame($this->node->getLastModified(), null);
+		$this->assertNull($this->node->getLastModified());
 	}
 
+	/**
+	 * @throws BadRequest
+	 */
 	public function testUpdateComment() {
 		$msg = 'Hello Earth';
 
@@ -195,8 +205,11 @@ class CommentsNodeTest extends \Test\TestCase {
 	}
 
 
+	/**
+	 * @throws BadRequest
+	 */
 	public function testUpdateCommentLogException() {
-		$this->expectException(\Exception::class);
+		$this->expectException(Exception::class);
 		$this->expectExceptionMessage('buh!');
 
 		$msg = null;
@@ -216,7 +229,7 @@ class CommentsNodeTest extends \Test\TestCase {
 		$this->comment->expects($this->once())
 			->method('setMessage')
 			->with($msg)
-			->will($this->throwException(new \Exception('buh!')));
+			->will($this->throwException(new Exception('buh!')));
 
 		$this->comment->expects($this->any())
 			->method('getActorType')
@@ -237,7 +250,7 @@ class CommentsNodeTest extends \Test\TestCase {
 
 
 	public function testUpdateCommentMessageTooLongException() {
-		$this->expectException(\Sabre\DAV\Exception\BadRequest::class);
+		$this->expectException(BadRequest::class);
 		$this->expectExceptionMessage('Message exceeds allowed character limit of');
 
 		$user = $this->getMockBuilder(IUser::class)
@@ -275,8 +288,11 @@ class CommentsNodeTest extends \Test\TestCase {
 	}
 
 
+	/**
+	 * @throws BadRequest
+	 */
 	public function testUpdateForbiddenByUser() {
-		$this->expectException(\Sabre\DAV\Exception\Forbidden::class);
+		$this->expectException(Forbidden::class);
 
 		$msg = 'HaXX0r';
 
@@ -310,8 +326,11 @@ class CommentsNodeTest extends \Test\TestCase {
 	}
 
 
+	/**
+	 * @throws BadRequest
+	 */
 	public function testUpdateForbiddenByType() {
-		$this->expectException(\Sabre\DAV\Exception\Forbidden::class);
+		$this->expectException(Forbidden::class);
 
 		$msg = 'HaXX0r';
 
@@ -340,8 +359,11 @@ class CommentsNodeTest extends \Test\TestCase {
 	}
 
 
+	/**
+	 * @throws BadRequest
+	 */
 	public function testUpdateForbiddenByNotLoggedIn() {
-		$this->expectException(\Sabre\DAV\Exception\Forbidden::class);
+		$this->expectException(Forbidden::class);
 
 		$msg = 'HaXX0r';
 
@@ -398,8 +420,8 @@ class CommentsNodeTest extends \Test\TestCase {
 			$ns . 'actorType' => 'users',
 			$ns . 'actorId' => 'alice',
 			$ns . 'actorDisplayName' => 'Alice of Wonderland',
-			$ns . 'creationDateTime' => new \DateTime('2016-01-10 18:48:00'),
-			$ns . 'latestChildDateTime' => new \DateTime('2016-01-12 18:48:00'),
+			$ns . 'creationDateTime' => new DateTime('2016-01-10 18:48:00'),
+			$ns . 'latestChildDateTime' => new DateTime('2016-01-12 18:48:00'),
 			$ns . 'objectType' => 'files',
 			$ns . 'objectId' => '1848',
 			$ns . 'referenceId' => 'ref',
@@ -493,28 +515,27 @@ class CommentsNodeTest extends \Test\TestCase {
 			$this->assertSame($expected[$name], $value);
 			unset($expected[$name]);
 		}
-		$this->assertTrue(empty($expected));
+		$this->assertEmpty($expected);
 	}
 
-	public function readCommentProvider() {
-		$creationDT = new \DateTime('2016-01-19 18:48:00');
-		$diff = new \DateInterval('PT2H');
+	public function readCommentProvider(): array {
+		$creationDT = new DateTime('2016-01-19 18:48:00');
+		$diff = new DateInterval('PT2H');
 		$readDT1 = clone $creationDT;
 		$readDT1->sub($diff);
 		$readDT2 = clone $creationDT;
 		$readDT2->add($diff);
 		return [
-			[$creationDT, $readDT1, 'true'],
-			[$creationDT, $readDT2, 'false'],
-			[$creationDT, null, 'true'],
+			[$creationDT, $readDT1, true],
+			[$creationDT, $readDT2, false],
+			[$creationDT, null, true],
 		];
 	}
 
 	/**
 	 * @dataProvider readCommentProvider
-	 * @param $expected
 	 */
-	public function testGetPropertiesUnreadProperty($creationDT, $readDT, $expected) {
+	public function testGetPropertiesUnreadProperty(DateTime $creationDT, ?DateTime $readDT, bool $expected) {
 		$this->comment->expects($this->any())
 			->method('getCreationDateTime')
 			->willReturn($creationDT);
@@ -537,7 +558,7 @@ class CommentsNodeTest extends \Test\TestCase {
 
 		$properties = $this->node->getProperties(null);
 
-		$this->assertTrue(array_key_exists(CommentNode::PROPERTY_NAME_UNREAD, $properties));
-		$this->assertSame($properties[CommentNode::PROPERTY_NAME_UNREAD], $expected);
+		$this->assertArrayHasKey(CommentNode::PROPERTY_NAME_UNREAD, $properties);
+		$this->assertSame($properties[CommentNode::PROPERTY_NAME_UNREAD], $expected ? 'true' : 'false');
 	}
 }

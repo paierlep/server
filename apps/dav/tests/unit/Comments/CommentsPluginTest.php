@@ -26,29 +26,39 @@
  */
 namespace OCA\DAV\Tests\unit\Comments;
 
+use DateTime;
+use Exception;
 use OC\Comments\Comment;
 use OCA\DAV\Comments\CommentsPlugin as CommentsPluginImplementation;
 use OCA\DAV\Comments\EntityCollection;
 use OCP\Comments\IComment;
 use OCP\Comments\ICommentsManager;
+use OCP\Comments\IllegalIDChangeException;
 use OCP\IUser;
 use OCP\IUserSession;
+use PHPUnit\Framework\MockObject\MockObject;
+use Sabre\DAV\Exception\BadRequest;
+use Sabre\DAV\Exception\NotFound;
+use Sabre\DAV\Exception\ReportNotSupported;
+use Sabre\DAV\Exception\UnsupportedMediaType;
 use Sabre\DAV\INode;
+use Sabre\DAV\Server;
 use Sabre\DAV\Tree;
 use Sabre\HTTP\RequestInterface;
 use Sabre\HTTP\ResponseInterface;
+use Test\TestCase;
 
-class CommentsPluginTest extends \Test\TestCase {
-	/** @var \Sabre\DAV\Server */
+class CommentsPluginTest extends TestCase {
+	/** @var Server|MockObject */
 	private $server;
 
-	/** @var Tree */
+	/** @var Tree|MockObject */
 	private $tree;
 
-	/** @var ICommentsManager */
+	/** @var ICommentsManager|MockObject */
 	private $commentsManager;
 
-	/** @var  IUserSession */
+	/** @var IUserSession|MockObject */
 	private $userSession;
 
 	/** @var CommentsPluginImplementation */
@@ -56,25 +66,21 @@ class CommentsPluginTest extends \Test\TestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
-		$this->tree = $this->getMockBuilder(Tree::class)
-			->disableOriginalConstructor()
-			->getMock();
-
-		$this->server = $this->getMockBuilder('\Sabre\DAV\Server')
+		$this->tree = $this->createMock(Tree::class);
+		$this->server = $this->getMockBuilder(Server::class)
 			->setConstructorArgs([$this->tree])
-			->setMethods(['getRequestUri'])
+			->onlyMethods(['getRequestUri'])
 			->getMock();
 
-		$this->commentsManager = $this->getMockBuilder(ICommentsManager::class)
-			->disableOriginalConstructor()
-			->getMock();
-		$this->userSession = $this->getMockBuilder(IUserSession::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$this->commentsManager = $this->createMock(ICommentsManager::class);
+		$this->userSession = $this->createMock(IUserSession::class);
 
 		$this->plugin = new CommentsPluginImplementation($this->commentsManager, $this->userSession);
 	}
 
+	/**
+	 * @throws IllegalIDChangeException
+	 */
 	public function testCreateComment() {
 		$commentData = [
 			'actorType' => 'users',
@@ -170,9 +176,12 @@ class CommentsPluginTest extends \Test\TestCase {
 		$this->plugin->httpPost($request, $response);
 	}
 
-	
+
+	/**
+	 * @throws IllegalIDChangeException
+	 */
 	public function testCreateCommentInvalidObject() {
-		$this->expectException(\Sabre\DAV\Exception\NotFound::class);
+		$this->expectException(NotFound::class);
 
 		$commentData = [
 			'actorType' => 'users',
@@ -217,7 +226,7 @@ class CommentsPluginTest extends \Test\TestCase {
 		$this->tree->expects($this->any())
 			->method('getNodeForPath')
 			->with('/' . $path)
-			->will($this->throwException(new \Sabre\DAV\Exception\NotFound()));
+			->will($this->throwException(new NotFound()));
 
 		$request = $this->getMockBuilder(RequestInterface::class)
 			->disableOriginalConstructor()
@@ -252,9 +261,12 @@ class CommentsPluginTest extends \Test\TestCase {
 		$this->plugin->httpPost($request, $response);
 	}
 
-	
+
+	/**
+	 * @throws IllegalIDChangeException
+	 */
 	public function testCreateCommentInvalidActor() {
-		$this->expectException(\Sabre\DAV\Exception\BadRequest::class);
+		$this->expectException(BadRequest::class);
 
 		$commentData = [
 			'actorType' => 'robots',
@@ -340,9 +352,12 @@ class CommentsPluginTest extends \Test\TestCase {
 		$this->plugin->httpPost($request, $response);
 	}
 
-	
+
+	/**
+	 * @throws IllegalIDChangeException
+	 */
 	public function testCreateCommentUnsupportedMediaType() {
-		$this->expectException(\Sabre\DAV\Exception\UnsupportedMediaType::class);
+		$this->expectException(UnsupportedMediaType::class);
 
 		$commentData = [
 			'actorType' => 'users',
@@ -428,9 +443,12 @@ class CommentsPluginTest extends \Test\TestCase {
 		$this->plugin->httpPost($request, $response);
 	}
 
-	
+
+	/**
+	 * @throws IllegalIDChangeException
+	 */
 	public function testCreateCommentInvalidPayload() {
-		$this->expectException(\Sabre\DAV\Exception\BadRequest::class);
+		$this->expectException(BadRequest::class);
 
 		$commentData = [
 			'actorType' => 'users',
@@ -522,9 +540,12 @@ class CommentsPluginTest extends \Test\TestCase {
 		$this->plugin->httpPost($request, $response);
 	}
 
-	
+
+	/**
+	 * @throws IllegalIDChangeException
+	 */
 	public function testCreateCommentMessageTooLong() {
-		$this->expectException(\Sabre\DAV\Exception\BadRequest::class);
+		$this->expectException(BadRequest::class);
 		$this->expectExceptionMessage('Message exceeds allowed character limit of');
 
 		$commentData = [
@@ -616,9 +637,12 @@ class CommentsPluginTest extends \Test\TestCase {
 		$this->plugin->httpPost($request, $response);
 	}
 
-	
+
+	/**
+	 * @throws NotFound
+	 */
 	public function testOnReportInvalidNode() {
-		$this->expectException(\Sabre\DAV\Exception\ReportNotSupported::class);
+		$this->expectException(ReportNotSupported::class);
 
 		$path = 'totally/unrelated/13';
 
@@ -639,9 +663,12 @@ class CommentsPluginTest extends \Test\TestCase {
 		$this->plugin->onReport(CommentsPluginImplementation::REPORT_NAME, [], '/' . $path);
 	}
 
-	
+
+	/**
+	 * @throws NotFound
+	 */
 	public function testOnReportInvalidReportName() {
-		$this->expectException(\Sabre\DAV\Exception\ReportNotSupported::class);
+		$this->expectException(ReportNotSupported::class);
 
 		$path = 'comments/files/42';
 
@@ -662,6 +689,10 @@ class CommentsPluginTest extends \Test\TestCase {
 		$this->plugin->onReport('{whoever}whatever', [], '/' . $path);
 	}
 
+	/**
+	 * @throws ReportNotSupported
+	 * @throws NotFound
+	 */
 	public function testOnReportDateTimeEmpty() {
 		$path = 'comments/files/42';
 
@@ -717,6 +748,11 @@ class CommentsPluginTest extends \Test\TestCase {
 		$this->plugin->onReport(CommentsPluginImplementation::REPORT_NAME, $parameters, '/' . $path);
 	}
 
+	/**
+	 * @throws ReportNotSupported
+	 * @throws NotFound
+	 * @throws Exception
+	 */
 	public function testOnReport() {
 		$path = 'comments/files/42';
 
@@ -740,7 +776,7 @@ class CommentsPluginTest extends \Test\TestCase {
 			->getMock();
 		$node->expects($this->once())
 			->method('findChildren')
-			->with(5, 10, new \DateTime($parameters[2]['value']))
+			->with(5, 10, new DateTime($parameters[2]['value']))
 			->willReturn([]);
 
 		$response = $this->getMockBuilder(ResponseInterface::class)

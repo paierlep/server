@@ -38,7 +38,7 @@ class PluginTest extends TestCase {
 		$this->plugin = new Plugin();
 	}
 
-	public function linkProvider() {
+	public function linkProvider(): array {
 		return [
 			[
 				'principals/users/MyUserName',

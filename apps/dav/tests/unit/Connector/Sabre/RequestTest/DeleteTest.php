@@ -22,7 +22,10 @@
  */
 namespace OCA\DAV\Tests\unit\Connector\Sabre\RequestTest;
 
+use Exception;
 use OCP\AppFramework\Http;
+use OCP\Files\FileInfo;
+use OCP\Lock\LockedException;
 
 /**
  * Class DeleteTest
@@ -32,6 +35,10 @@ use OCP\AppFramework\Http;
  * @package OCA\DAV\Tests\unit\Connector\Sabre\RequestTest
  */
 class DeleteTest extends RequestTestCase {
+	/**
+	 * @throws LockedException
+	 * @throws Exception
+	 */
 	public function testBasicUpload() {
 		$user = $this->getUniqueID();
 		$view = $this->setupUser($user, 'pass');
@@ -44,7 +51,7 @@ class DeleteTest extends RequestTestCase {
 		$mount->getStorage()->unlink($mount->getInternalPath($internalPath));
 
 		// cache entry still exists
-		$this->assertInstanceOf('\OCP\Files\FileInfo', $view->getFileInfo('foo.txt'));
+		$this->assertInstanceOf(FileInfo::class, $view->getFileInfo('foo.txt'));
 
 		$response = $this->request($view, $user, 'pass', 'DELETE', '/foo.txt');
 

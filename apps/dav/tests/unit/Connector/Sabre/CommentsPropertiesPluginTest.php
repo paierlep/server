@@ -26,13 +26,17 @@
 namespace OCA\DAV\Tests\unit\Connector\Sabre;
 
 use OCA\DAV\Connector\Sabre\CommentPropertiesPlugin as CommentPropertiesPluginImplementation;
+use OCA\DAV\Connector\Sabre\Directory;
 use OCA\DAV\Connector\Sabre\File;
 use OCP\Comments\ICommentsManager;
 use OCP\IUser;
 use OCP\IUserSession;
+use Sabre\DAV\INode;
 use Sabre\DAV\PropFind;
+use Sabre\DAV\Server;
+use Test\TestCase;
 
-class CommentsPropertiesPluginTest extends \Test\TestCase {
+class CommentsPropertiesPluginTest extends TestCase {
 
 	/** @var  CommentPropertiesPluginImplementation */
 	protected $plugin;
@@ -43,27 +47,19 @@ class CommentsPropertiesPluginTest extends \Test\TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		$this->commentsManager = $this->getMockBuilder(ICommentsManager::class)
-			->disableOriginalConstructor()
-			->getMock();
-		$this->userSession = $this->getMockBuilder(IUserSession::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$this->commentsManager = $this->createMock(ICommentsManager::class);
+		$this->userSession = $this->createMock(IUserSession::class);
 
-		$this->server = $this->getMockBuilder('\Sabre\DAV\Server')
-			->disableOriginalConstructor()
-			->getMock();
+		$this->server = $this->createMock(Server::class);
 
 		$this->plugin = new CommentPropertiesPluginImplementation($this->commentsManager, $this->userSession);
 		$this->plugin->initialize($this->server);
 	}
 
-	public function nodeProvider() {
+	public function nodeProvider(): array {
 		$mocks = [];
-		foreach (['\OCA\DAV\Connector\Sabre\File', '\OCA\DAV\Connector\Sabre\Directory', '\Sabre\DAV\INode'] as $class) {
-			$mocks[] = $this->getMockBuilder($class)
-				->disableOriginalConstructor()
-				->getMock();
+		foreach ([File::class, Directory::class, INode::class] as $class) {
+			$mocks[] = $this->createMock($class);
 		}
 
 		return [
@@ -94,24 +90,19 @@ class CommentsPropertiesPluginTest extends \Test\TestCase {
 		$this->plugin->handleGetProperties($propFind, $node);
 	}
 
-	public function baseUriProvider() {
+	public function baseUriProvider(): array {
 		return [
-			['owncloud/remote.php/webdav/', '4567', 'owncloud/remote.php/dav/comments/files/4567'],
-			['owncloud/remote.php/files/', '4567', 'owncloud/remote.php/dav/comments/files/4567'],
-			['owncloud/wicked.php/files/', '4567', null]
+			['owncloud/remote.php/webdav/', 4567, 'owncloud/remote.php/dav/comments/files/4567'],
+			['owncloud/remote.php/files/', 4567, 'owncloud/remote.php/dav/comments/files/4567'],
+			['owncloud/wicked.php/files/', 4567, null]
 		];
 	}
 
 	/**
 	 * @dataProvider baseUriProvider
-	 * @param $baseUri
-	 * @param $fid
-	 * @param $expectedHref
 	 */
-	public function testGetCommentsLink($baseUri, $fid, $expectedHref) {
-		$node = $this->getMockBuilder(File::class)
-			->disableOriginalConstructor()
-			->getMock();
+	public function testGetCommentsLink(string $baseUri, int $fid, ?string $expectedHref) {
+		$node = $this->createMock(File::class);
 		$node->expects($this->any())
 			->method('getId')
 			->willReturn($fid);
@@ -124,7 +115,7 @@ class CommentsPropertiesPluginTest extends \Test\TestCase {
 		$this->assertSame($expectedHref, $href);
 	}
 
-	public function userProvider() {
+	public function userProvider(): array {
 		return [
 			[
 				$this->getMockBuilder(IUser::class)
@@ -145,7 +136,7 @@ class CommentsPropertiesPluginTest extends \Test\TestCase {
 			->getMock();
 		$node->expects($this->any())
 			->method('getId')
-			->willReturn('4567');
+			->willReturn(4567);
 
 		$this->userSession->expects($this->once())
 			->method('getUser')
@@ -159,7 +150,7 @@ class CommentsPropertiesPluginTest extends \Test\TestCase {
 		if (is_null($user)) {
 			$this->assertNull($unread);
 		} else {
-			$this->assertSame($unread, 42);
+			$this->assertSame(42, $unread);
 		}
 	}
 }

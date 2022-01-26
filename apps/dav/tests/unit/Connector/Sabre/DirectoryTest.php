@@ -28,13 +28,26 @@
  */
 namespace OCA\DAV\Tests\Unit\Connector\Sabre;
 
+use Exception;
 use OC\Files\FileInfo;
 use OC\Files\Storage\Wrapper\Quota;
+use OC\Files\View;
 use OCA\DAV\Connector\Sabre\Directory;
+use OCA\DAV\Connector\Sabre\Exception\FileLocked;
+use OCA\DAV\Connector\Sabre\Exception\InvalidPath;
 use OCP\Files\ForbiddenException;
+use OCP\Files\InvalidPathException;
 use OCP\Files\Mount\IMountPoint;
+use OCP\Files\StorageNotAvailableException;
+use PHPUnit\Framework\MockObject\MockObject;
+use Sabre\DAV\Exception\BadRequest;
+use Sabre\DAV\Exception\Forbidden;
+use Sabre\DAV\Exception\Locked;
+use Sabre\DAV\Exception\NotFound;
+use Sabre\DAV\Exception\ServiceUnavailable;
+use Test\TestCase;
 
-class TestViewDirectory extends \OC\Files\View {
+class TestViewDirectory extends View {
 	private $updatables;
 	private $deletables;
 	private $canRename;
@@ -70,24 +83,24 @@ class TestViewDirectory extends \OC\Files\View {
 /**
  * @group DB
  */
-class DirectoryTest extends \Test\TestCase {
+class DirectoryTest extends TestCase {
 
-	/** @var \OC\Files\View | \PHPUnit\Framework\MockObject\MockObject */
+	/** @var View | MockObject */
 	private $view;
-	/** @var \OC\Files\FileInfo | \PHPUnit\Framework\MockObject\MockObject */
+	/** @var FileInfo | MockObject */
 	private $info;
 
 	protected function setUp(): void {
 		parent::setUp();
 
-		$this->view = $this->createMock('OC\Files\View');
-		$this->info = $this->createMock('OC\Files\FileInfo');
+		$this->view = $this->createMock(View::class);
+		$this->info = $this->createMock(FileInfo::class);
 		$this->info->expects($this->any())
 			->method('isReadable')
 			->willReturn(true);
 	}
 
-	private function getDir($path = '/') {
+	private function getDir(string $path = '/'): Directory {
 		$this->view->expects($this->once())
 			->method('getRelativePath')
 			->willReturn($path);
@@ -100,8 +113,11 @@ class DirectoryTest extends \Test\TestCase {
 	}
 
 
+	/**
+	 * @throws FileLocked
+	 */
 	public function testDeleteRootFolderFails() {
-		$this->expectException(\Sabre\DAV\Exception\Forbidden::class);
+		$this->expectException(Forbidden::class);
 
 		$this->info->expects($this->any())
 			->method('isDeletable')
@@ -113,6 +129,10 @@ class DirectoryTest extends \Test\TestCase {
 	}
 
 
+	/**
+	 * @throws FileLocked
+	 * @throws Forbidden
+	 */
 	public function testDeleteForbidden() {
 		$this->expectException(\OCA\DAV\Connector\Sabre\Exception\Forbidden::class);
 
@@ -132,6 +152,10 @@ class DirectoryTest extends \Test\TestCase {
 	}
 
 
+	/**
+	 * @throws FileLocked
+	 * @throws Forbidden
+	 */
 	public function testDeleteFolderWhenAllowed() {
 		// deletion allowed
 		$this->info->expects($this->once())
@@ -149,8 +173,11 @@ class DirectoryTest extends \Test\TestCase {
 	}
 
 
+	/**
+	 * @throws FileLocked
+	 */
 	public function testDeleteFolderFailsWhenNotAllowed() {
-		$this->expectException(\Sabre\DAV\Exception\Forbidden::class);
+		$this->expectException(Forbidden::class);
 
 		$this->info->expects($this->once())
 			->method('isDeletable')
@@ -161,8 +188,11 @@ class DirectoryTest extends \Test\TestCase {
 	}
 
 
+	/**
+	 * @throws FileLocked
+	 */
 	public function testDeleteFolderThrowsWhenDeletionFailed() {
-		$this->expectException(\Sabre\DAV\Exception\Forbidden::class);
+		$this->expectException(Forbidden::class);
 
 		// deletion allowed
 		$this->info->expects($this->once())
@@ -179,6 +209,10 @@ class DirectoryTest extends \Test\TestCase {
 		$dir->delete();
 	}
 
+	/**
+	 * @throws \OCA\DAV\Connector\Sabre\Exception\Forbidden
+	 * @throws Locked
+	 */
 	public function testGetChildren() {
 		$info1 = $this->getMockBuilder(FileInfo::class)
 			->disableOriginalConstructor()
@@ -211,7 +245,7 @@ class DirectoryTest extends \Test\TestCase {
 		$dir = new Directory($this->view, $this->info);
 		$nodes = $dir->getChildren();
 
-		$this->assertEquals(2, count($nodes));
+		$this->assertCount(2, $nodes);
 
 		// calling a second time just returns the cached values,
 		// does not call getDirectoryContents again
@@ -219,8 +253,12 @@ class DirectoryTest extends \Test\TestCase {
 	}
 
 
+	/**
+	 * @throws Locked
+	 * @throws \OCA\DAV\Connector\Sabre\Exception\Forbidden
+	 */
 	public function testGetChildrenNoPermission() {
-		$this->expectException(\Sabre\DAV\Exception\Forbidden::class);
+		$this->expectException(Forbidden::class);
 
 		$info = $this->createMock(FileInfo::class);
 		$info->expects($this->any())
@@ -232,8 +270,12 @@ class DirectoryTest extends \Test\TestCase {
 	}
 
 
+	/**
+	 * @throws InvalidPath
+	 * @throws ServiceUnavailable
+	 */
 	public function testGetChildNoPermission() {
-		$this->expectException(\Sabre\DAV\Exception\NotFound::class);
+		$this->expectException(NotFound::class);
 
 		$this->info->expects($this->any())
 			->method('isReadable')
@@ -244,24 +286,32 @@ class DirectoryTest extends \Test\TestCase {
 	}
 
 
+	/**
+	 * @throws InvalidPath
+	 * @throws NotFound
+	 */
 	public function testGetChildThrowStorageNotAvailableException() {
-		$this->expectException(\Sabre\DAV\Exception\ServiceUnavailable::class);
+		$this->expectException(ServiceUnavailable::class);
 
 		$this->view->expects($this->once())
 			->method('getFileInfo')
-			->willThrowException(new \OCP\Files\StorageNotAvailableException());
+			->willThrowException(new StorageNotAvailableException());
 
 		$dir = new Directory($this->view, $this->info);
 		$dir->getChild('.');
 	}
 
 
+	/**
+	 * @throws NotFound
+	 * @throws ServiceUnavailable
+	 */
 	public function testGetChildThrowInvalidPath() {
-		$this->expectException(\OCA\DAV\Connector\Sabre\Exception\InvalidPath::class);
+		$this->expectException(InvalidPath::class);
 
 		$this->view->expects($this->once())
 			->method('verifyPath')
-			->willThrowException(new \OCP\Files\InvalidPathException());
+			->willThrowException(new InvalidPathException());
 		$this->view->expects($this->never())
 			->method('getFileInfo');
 
@@ -354,37 +404,52 @@ class DirectoryTest extends \Test\TestCase {
 
 	/**
 	 * @dataProvider moveFailedProvider
+	 * @throws BadRequest
+	 * @throws FileLocked
+	 * @throws Forbidden
+	 * @throws ServiceUnavailable
+	 * @throws \OCA\DAV\Connector\Sabre\Exception\Forbidden
 	 */
-	public function testMoveFailed($source, $destination, $updatables, $deletables) {
-		$this->expectException(\Sabre\DAV\Exception\Forbidden::class);
+	public function testMoveFailed(string $source, string $destination, array $updatables, array $deletables) {
+		$this->expectException(Forbidden::class);
 
 		$this->moveTest($source, $destination, $updatables, $deletables);
 	}
 
 	/**
 	 * @dataProvider moveSuccessProvider
+	 * @throws BadRequest
+	 * @throws FileLocked
+	 * @throws Forbidden
+	 * @throws ServiceUnavailable
+	 * @throws \OCA\DAV\Connector\Sabre\Exception\Forbidden
 	 */
-	public function testMoveSuccess($source, $destination, $updatables, $deletables) {
+	public function testMoveSuccess(string $source, string $destination, array $updatables, array $deletables) {
 		$this->moveTest($source, $destination, $updatables, $deletables);
 		$this->addToAssertionCount(1);
 	}
 
 	/**
 	 * @dataProvider moveFailedInvalidCharsProvider
+	 * @throws BadRequest
+	 * @throws FileLocked
+	 * @throws Forbidden
+	 * @throws ServiceUnavailable
+	 * @throws \OCA\DAV\Connector\Sabre\Exception\Forbidden
 	 */
-	public function testMoveFailedInvalidChars($source, $destination, $updatables, $deletables) {
-		$this->expectException(\OCA\DAV\Connector\Sabre\Exception\InvalidPath::class);
+	public function testMoveFailedInvalidChars(string $source, string $destination, array $updatables, array $deletables) {
+		$this->expectException(InvalidPath::class);
 
 		$this->moveTest($source, $destination, $updatables, $deletables);
 	}
 
-	public function moveFailedInvalidCharsProvider() {
+	public function moveFailedInvalidCharsProvider(): array {
 		return [
 			['a/b', 'a/*', ['a' => true, 'a/b' => true, 'a/c*' => false], []],
 		];
 	}
 
-	public function moveFailedProvider() {
+	public function moveFailedProvider(): array {
 		return [
 			['a/b', 'a/c', ['a' => false, 'a/b' => false, 'a/c' => false], []],
 			['a/b', 'b/b', ['a' => false, 'a/b' => false, 'b' => false, 'b/b' => false], []],
@@ -395,7 +460,7 @@ class DirectoryTest extends \Test\TestCase {
 		];
 	}
 
-	public function moveSuccessProvider() {
+	public function moveSuccessProvider(): array {
 		return [
 			['a/b', 'b/b', ['a' => true, 'a/b' => true, 'b' => true, 'b/b' => false], ['a/b' => true]],
 			// older files with special chars can still be renamed to valid names
@@ -404,11 +469,13 @@ class DirectoryTest extends \Test\TestCase {
 	}
 
 	/**
-	 * @param $source
-	 * @param $destination
-	 * @param $updatables
+	 * @throws FileLocked
+	 * @throws \OCA\DAV\Connector\Sabre\Exception\Forbidden
+	 * @throws BadRequest
+	 * @throws ServiceUnavailable
+	 * @throws Forbidden
 	 */
-	private function moveTest($source, $destination, $updatables, $deletables) {
+	private function moveTest(string $source, string $destination, array $updatables, array $deletables) {
 		$view = new TestViewDirectory($updatables, $deletables);
 
 		$sourceInfo = new FileInfo($source, null, null, [], null);
@@ -416,7 +483,7 @@ class DirectoryTest extends \Test\TestCase {
 
 		$sourceNode = new Directory($view, $sourceInfo);
 		$targetNode = $this->getMockBuilder(Directory::class)
-			->setMethods(['childExists'])
+			->onlyMethods(['childExists'])
 			->setConstructorArgs([$view, $targetInfo])
 			->getMock();
 		$targetNode->expects($this->any())->method('childExists')
@@ -426,8 +493,15 @@ class DirectoryTest extends \Test\TestCase {
 	}
 
 
+	/**
+	 * @throws FileLocked
+	 * @throws \OCA\DAV\Connector\Sabre\Exception\Forbidden
+	 * @throws BadRequest
+	 * @throws ServiceUnavailable
+	 * @throws Exception
+	 */
 	public function testFailingMove() {
-		$this->expectException(\Sabre\DAV\Exception\Forbidden::class);
+		$this->expectException(Forbidden::class);
 		$this->expectExceptionMessage('Could not copy directory b, target exists');
 
 		$source = 'a/b';
@@ -442,7 +516,7 @@ class DirectoryTest extends \Test\TestCase {
 
 		$sourceNode = new Directory($view, $sourceInfo);
 		$targetNode = $this->getMockBuilder(Directory::class)
-			->setMethods(['childExists'])
+			->onlyMethods(['childExists'])
 			->setConstructorArgs([$view, $targetInfo])
 			->getMock();
 		$targetNode->expects($this->once())->method('childExists')

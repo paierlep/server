@@ -36,11 +36,17 @@ namespace OCA\DAV\Tests\unit\Connector\Sabre;
  * See the COPYING-README file.
  */
 
-use OCA\DAV\Connector\Sabre\Directory;
-use OCA\DAV\Connector\Sabre\File;
+use OC;
+use OCA\DAV\DAV\CustomPropertiesBackend;
 use OCP\IDBConnection;
 use OCP\IUser;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
+use Sabre\DAV\PropFind;
+use Sabre\DAV\PropPatch;
+use Sabre\DAV\Server;
 use Sabre\DAV\Tree;
+use Test\TestCase;
 
 /**
  * Class CustomPropertiesBackend
@@ -49,32 +55,31 @@ use Sabre\DAV\Tree;
  *
  * @package OCA\DAV\Tests\unit\Connector\Sabre
  */
-class CustomPropertiesBackendTest extends \Test\TestCase {
+class CustomPropertiesBackendTest extends TestCase {
 
 	/**
-	 * @var \Sabre\DAV\Server
+	 * @var Server
 	 */
 	private $server;
 
 	/**
-	 * @var \Sabre\DAV\Tree
-	 */
-	private $tree;
-
-	/**
-	 * @var \OCA\DAV\DAV\CustomPropertiesBackend
+	 * @var CustomPropertiesBackend
 	 */
 	private $plugin;
 
 	/**
-	 * @var \OCP\IUser
+	 * @var IUser
 	 */
 	private $user;
 
+	/**
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
+	 */
 	protected function setUp(): void {
 		parent::setUp();
-		$this->server = new \Sabre\DAV\Server();
-		$this->tree = $this->getMockBuilder(Tree::class)
+		$this->server = new Server();
+		$tree = $this->getMockBuilder(Tree::class)
 			->disableOriginalConstructor()
 			->getMock();
 
@@ -87,15 +92,19 @@ class CustomPropertiesBackendTest extends \Test\TestCase {
 			->method('getUID')
 			->willReturn($userId);
 
-		$this->plugin = new \OCA\DAV\DAV\CustomPropertiesBackend(
-			$this->tree,
-			\OC::$server->get(IDBConnection::class),
+		$this->plugin = new CustomPropertiesBackend(
+			$tree,
+			OC::$server->get(IDBConnection::class),
 			$this->user
 		);
 	}
 
+	/**
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
+	 */
 	protected function tearDown(): void {
-		$connection = \OC::$server->get(IDBConnection::class);
+		$connection = OC::$server->get(IDBConnection::class);
 		$deleteStatement = $connection->prepare(
 			'DELETE FROM `*PREFIX*properties`' .
 			' WHERE `userid` = ?'
@@ -108,24 +117,9 @@ class CustomPropertiesBackendTest extends \Test\TestCase {
 		$deleteStatement->closeCursor();
 	}
 
-	private function createTestNode($class) {
-		$node = $this->getMockBuilder($class)
-			->disableOriginalConstructor()
-			->getMock();
-		$node->expects($this->any())
-			->method('getId')
-			->willReturn(123);
-
-		$node->expects($this->any())
-			->method('getPath')
-			->willReturn('/dummypath');
-
-		return $node;
-	}
-
 	private function applyDefaultProps($path = '/dummypath') {
 		// properties to set
-		$propPatch = new \Sabre\DAV\PropPatch([
+		$propPatch = new PropPatch([
 			'customprop' => 'value1',
 			'customprop2' => 'value2',
 		]);
@@ -148,7 +142,7 @@ class CustomPropertiesBackendTest extends \Test\TestCase {
 	 * Test that propFind on a missing file soft fails
 	 */
 	public function testPropFindMissingFileSoftFail() {
-		$propFind = new \Sabre\DAV\PropFind(
+		$propFind = new PropFind(
 			'/dummypath',
 			[
 				'customprop',
@@ -178,7 +172,7 @@ class CustomPropertiesBackendTest extends \Test\TestCase {
 	public function testSetGetPropertiesForFile() {
 		$this->applyDefaultProps();
 
-		$propFind = new \Sabre\DAV\PropFind(
+		$propFind = new PropFind(
 			'/dummypath',
 			[
 				'customprop',
@@ -202,7 +196,7 @@ class CustomPropertiesBackendTest extends \Test\TestCase {
 	 * Test getting properties from directory
 	 */
 	public function testGetPropertiesForDirectory() {
-		$this->applyDefaultProps('/dummypath');
+		$this->applyDefaultProps();
 		$this->applyDefaultProps('/dummypath/test.txt');
 
 		$propNames = [
@@ -211,13 +205,13 @@ class CustomPropertiesBackendTest extends \Test\TestCase {
 			'unsetprop',
 		];
 
-		$propFindRoot = new \Sabre\DAV\PropFind(
+		$propFindRoot = new PropFind(
 			'/dummypath',
 			$propNames,
 			1
 		);
 
-		$propFindSub = new \Sabre\DAV\PropFind(
+		$propFindSub = new PropFind(
 			'/dummypath/test.txt',
 			$propNames,
 			0
@@ -251,7 +245,7 @@ class CustomPropertiesBackendTest extends \Test\TestCase {
 	public function testDeleteProperty() {
 		$this->applyDefaultProps();
 
-		$propPatch = new \Sabre\DAV\PropPatch([
+		$propPatch = new PropPatch([
 			'customprop' => null,
 		]);
 
