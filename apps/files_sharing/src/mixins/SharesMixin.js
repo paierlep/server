@@ -8,7 +8,7 @@
  * @author Julius Härtl <jus@bitgrid.net>
  * @author Vincent Petry <vincent@nextcloud.com>
  *
- * @license GNU AGPL version 3 or any later version
+ * @license AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -25,7 +25,8 @@
  *
  */
 
-import PQueue from 'p-queue/dist/index'
+// eslint-disable-next-line import/no-unresolved, node/no-missing-import
+import PQueue from 'p-queue'
 import debounce from 'debounce'
 
 import Share from '../models/Share'
@@ -74,18 +75,6 @@ export default {
 			 * ! do not remove it ot you'll lose all reactivity here
 			 */
 			reactiveState: this.share?.state,
-
-			SHARE_TYPES: {
-				SHARE_TYPE_USER: OC.Share.SHARE_TYPE_USER,
-				SHARE_TYPE_GROUP: OC.Share.SHARE_TYPE_GROUP,
-				SHARE_TYPE_LINK: OC.Share.SHARE_TYPE_LINK,
-				SHARE_TYPE_EMAIL: OC.Share.SHARE_TYPE_EMAIL,
-				SHARE_TYPE_REMOTE: OC.Share.SHARE_TYPE_REMOTE,
-				SHARE_TYPE_CIRCLE: OC.Share.SHARE_TYPE_CIRCLE,
-				SHARE_TYPE_GUEST: OC.Share.SHARE_TYPE_GUEST,
-				SHARE_TYPE_REMOTE_GROUP: OC.Share.SHARE_TYPE_REMOTE_GROUP,
-				SHARE_TYPE_ROOM: OC.Share.SHARE_TYPE_ROOM,
-			},
 		}
 	},
 
@@ -93,7 +82,8 @@ export default {
 
 		/**
 		 * Does the current share have a note
-		 * @returns {boolean}
+		 *
+		 * @return {boolean}
 		 */
 		hasNote: {
 			get() {
@@ -143,7 +133,7 @@ export default {
 		 * firing the request
 		 *
 		 * @param {Share} share the share to check
-		 * @returns {Boolean}
+		 * @return {boolean}
 		 */
 		checkShare(share) {
 			if (share.password) {
@@ -187,7 +177,8 @@ export default {
 
 		/**
 		 * Note changed, let's save it to a different key
-		 * @param {String} note the share note
+		 *
+		 * @param {string} note the share note
 		 */
 		onNoteChange(note) {
 			this.$set(this.share, 'newNote', note.trim())
@@ -196,7 +187,6 @@ export default {
 		/**
 		 * When the note change, we trim, save and dispatch
 		 *
-		 * @param {string} note the note
 		 */
 		onNoteSubmit() {
 			if (this.share.newNote) {
@@ -227,7 +217,7 @@ export default {
 		/**
 		 * Send an update of the share to the queue
 		 *
-		 * @param {string} propertyNames the properties to sync
+		 * @param {Array<string>} propertyNames the properties to sync
 		 */
 		queueUpdate(...propertyNames) {
 			if (propertyNames.length === 0) {
@@ -241,7 +231,7 @@ export default {
 				// share api controller accepts
 				propertyNames.map(p => (properties[p] = this.share[p].toString()))
 
-				this.updateQueue.add(async() => {
+				this.updateQueue.add(async () => {
 					this.saving = true
 					this.errors = {}
 					try {
@@ -270,6 +260,7 @@ export default {
 
 		/**
 		 * Manage sync errors
+		 *
 		 * @param {string} property the errored property, e.g. 'password'
 		 * @param {string} message the error message
 		 */
@@ -321,8 +312,9 @@ export default {
 
 		/**
 		 * Returns which dates are disabled for the datepicker
+		 *
 		 * @param {Date} date date to check
-		 * @returns {boolean}
+		 * @return {boolean}
 		 */
 		disabledDate(date) {
 			const dateMoment = moment(date)

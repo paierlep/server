@@ -66,6 +66,7 @@ class Memcached extends Cache implements IMemcache {
 				//\Memcached::OPT_BINARY_PROTOCOL =>      true,
 			];
 			// by default enable igbinary serializer if available
+			/** @psalm-suppress RedundantCondition */
 			if (\Memcached::HAVE_IGBINARY) {
 				$defaultOptions[\Memcached::OPT_SERIALIZER] =
 					\Memcached::SERIALIZER_IGBINARY;
@@ -133,27 +134,8 @@ class Memcached extends Cache implements IMemcache {
 	}
 
 	public function clear($prefix = '') {
-		$prefix = $this->getNameSpace() . $prefix;
-		$allKeys = self::$cache->getAllKeys();
-		if ($allKeys === false) {
-			// newer Memcached doesn't like getAllKeys(), flush everything
-			self::$cache->flush();
-			return true;
-		}
-		$keys = [];
-		$prefixLength = strlen($prefix);
-		foreach ($allKeys as $key) {
-			if (substr($key, 0, $prefixLength) === $prefix) {
-				$keys[] = $key;
-			}
-		}
-		if (method_exists(self::$cache, 'deleteMulti')) {
-			self::$cache->deleteMulti($keys);
-		} else {
-			foreach ($keys as $key) {
-				self::$cache->delete($key);
-			}
-		}
+		// Newer Memcached doesn't like getAllKeys(), flush everything
+		self::$cache->flush();
 		return true;
 	}
 

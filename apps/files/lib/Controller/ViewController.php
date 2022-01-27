@@ -162,10 +162,10 @@ class ViewController extends Controller {
 	 * @return TemplateResponse|RedirectResponse
 	 * @throws NotFoundException
 	 */
-	public function showFile(string $fileid = null): Response {
+	public function showFile(string $fileid = null, int $openfile = 1): Response {
 		// This is the entry point from the `/f/{fileid}` URL which is hardcoded in the server.
 		try {
-			return $this->redirectToFile($fileid, true);
+			return $this->redirectToFile($fileid, $openfile !== 0);
 		} catch (NotFoundException $e) {
 			return new RedirectResponse($this->urlGenerator->linkToRoute('files.view.index', ['fileNotFound' => true]));
 		}
@@ -196,8 +196,8 @@ class ViewController extends Controller {
 
 		// Load the files we need
 		\OCP\Util::addStyle('files', 'merged');
-		\OCP\Util::addScript('files', 'merged-index');
-		\OCP\Util::addScript('files', 'dist/main');
+		\OCP\Util::addScript('files', 'merged-index', 'files');
+		\OCP\Util::addScript('files', 'main');
 
 		// mostly for the home storage's free space
 		// FIXME: Make non static

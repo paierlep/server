@@ -155,16 +155,16 @@ class QueryBuilder implements IQueryBuilder {
 	 */
 	public function func() {
 		if ($this->connection->getDatabasePlatform() instanceof OraclePlatform) {
-			return new OCIFunctionBuilder($this->helper);
+			return new OCIFunctionBuilder($this->connection, $this, $this->helper);
 		}
 		if ($this->connection->getDatabasePlatform() instanceof SqlitePlatform) {
-			return new SqliteFunctionBuilder($this->helper);
+			return new SqliteFunctionBuilder($this->connection, $this, $this->helper);
 		}
 		if ($this->connection->getDatabasePlatform() instanceof PostgreSQL94Platform) {
-			return new PgSqlFunctionBuilder($this->helper);
+			return new PgSqlFunctionBuilder($this->connection, $this, $this->helper);
 		}
 
-		return new FunctionBuilder($this->helper);
+		return new FunctionBuilder($this->connection, $this, $this->helper);
 	}
 
 	/**
@@ -694,7 +694,7 @@ class QueryBuilder implements IQueryBuilder {
 	 *         ->from('users', 'u')
 	 * </code>
 	 *
-	 * @param string $from The table.
+	 * @param string|IQueryFunction $from The table.
 	 * @param string|null $alias The alias of the table.
 	 *
 	 * @return $this This QueryBuilder instance.
@@ -1303,7 +1303,7 @@ class QueryBuilder implements IQueryBuilder {
 	/**
 	 * Returns the table name quoted and with database prefix as needed by the implementation
 	 *
-	 * @param string $table
+	 * @param string|IQueryFunction $table
 	 * @return string
 	 */
 	public function getTableName($table) {

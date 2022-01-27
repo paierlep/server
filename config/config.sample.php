@@ -354,6 +354,13 @@ $CONFIG = [
 'lost_password_link' => 'https://example.org/link/to/password/reset',
 
 /**
+ * URL to use as target for the logo link in the header (top-left logo)
+ *
+ * Defaults to the base URL of your Nextcloud instance
+ */
+'logo_url' => 'https://example.org',
+
+/**
  * Mail Parameters
  *
  * These configure the email settings for Nextcloud notifications and password
@@ -840,6 +847,13 @@ $CONFIG = [
 'log_type' => 'file',
 
 /**
+ * This parameter determines where the audit logs are sent. See ``log_type`` for more information.
+ *
+ * Defaults to ``file``
+ */
+'log_type_audit' => 'file',
+
+/**
  * Name of the file to which the Nextcloud logs are written if parameter
  * ``log_type`` is set to ``file``.
  *
@@ -848,7 +862,15 @@ $CONFIG = [
 'logfile' => '/var/log/nextcloud.log',
 
 /**
- * Log file mode for the Nextcloud loggin type in octal notation.
+ * Name of the file to which the audit logs are written if parameter
+ * ``log_type`` is set to ``file``.
+ *
+ * Defaults to ``[datadirectory]/audit.log``
+ */
+'logfile_audit' => '/var/log/audit.log',
+
+/**
+ * Log file mode for the Nextcloud logging type in octal notation.
  *
  * Defaults to 0640 (writeable by user, readable by group).
  */
@@ -871,6 +893,16 @@ $CONFIG = [
  * The default value is ``Nextcloud``.
  */
 'syslog_tag' => 'Nextcloud',
+
+/**
+ * If you maintain different instances and aggregate the logs, you may want
+ * to distinguish between them. ``syslog_tag_audit`` can be set per instance
+ * with a unique id. Only available if ``log_type`` is set to ``syslog`` or
+ * ``systemd``.
+ *
+ * The default value is the value of ``syslog_tag``.
+ */
+'syslog_tag_audit' => 'Nextcloud',
 
 /**
  * Log condition for log level increase based on conditions. Once one of these
@@ -1042,6 +1074,16 @@ $CONFIG = [
  * Defaults to ``50`` megabytes
  */
 'preview_max_filesize_image' => 50,
+
+/**
+ * max memory for generating image previews with imagegd (default behavior)
+ * Reads the image dimensions from the header and assumes 32 bits per pixel.
+ * If creating the image would allocate more memory, preview generation will
+ * be disabled and the default mimetype icon is shown. Set to -1 for no limit.
+ *
+ * Defaults to ``128`` megabytes
+ */
+'preview_max_memory' => 128,
 
 /**
  * custom path for LibreOffice/OpenOffice binary
@@ -1562,7 +1604,7 @@ $CONFIG = [
  * Tables will be created with
  *  * character set: utf8mb4
  *  * collation:     utf8mb4_bin
- *  * row_format:    compressed
+ *  * row_format:    dynamic
  *
  * See:
  * https://dev.mysql.com/doc/refman/5.7/en/charset-unicode-utf8mb4.html
