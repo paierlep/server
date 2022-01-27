@@ -38,7 +38,6 @@ use OCP\Files\Template\ICustomTemplateProvider;
 use OCP\IContainer;
 use OCP\Notification\INotifier;
 use OCP\Preview\IProviderV2;
-use RuntimeException;
 
 /**
  * The context object passed to IBootstrap::register
