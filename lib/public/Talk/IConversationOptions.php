@@ -25,8 +25,6 @@ declare(strict_types=1);
 
 namespace OCP\Talk;
 
-use OCP\IUser;
-
 /**
  * @since 24.0.0
  */
@@ -41,5 +39,4 @@ interface IConversationOptions {
 	 * @since 24.0.0
 	 */
 	public function setPublic(bool $isPublic = true): self;
-
 }

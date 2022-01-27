@@ -37,5 +37,4 @@ interface IConversation {
 	 * @since 24.0.0
 	 */
 	public function getAbsoluteUrl(): string;
-
 }

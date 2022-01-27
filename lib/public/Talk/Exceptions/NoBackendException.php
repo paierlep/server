@@ -33,5 +33,4 @@ use RuntimeException;
  * @since 24.0.0
  */
 final class NoBackendException extends RuntimeException {
-
 }
