@@ -53,7 +53,12 @@
 namespace OC;
 
 use bantu\IniGetWrapper\IniGetWrapper;
+use Doctrine\DBAL\Platforms\PostgreSQL94Platform;
 use OC\Accounts\AccountManager;
+use OCA\Files_External\Service\BackendService;
+use OCA\Files_External\Service\GlobalStoragesService;
+use OCA\Files_External\Service\UserGlobalStoragesService;
+use OCA\Files_External\Service\UserStoragesService;
 use OC\App\AppManager;
 use OC\App\AppStore\Bundles\BundleFetcher;
 use OC\App\AppStore\Fetcher\AppFetcher;
@@ -61,12 +66,25 @@ use OC\App\AppStore\Fetcher\CategoryFetcher;
 use OC\AppFramework\Bootstrap\Coordinator;
 use OC\AppFramework\Http\Request;
 use OC\AppFramework\Utility\TimeFactory;
+use OCA\Theming\ImageManager;
+use OCA\Theming\ThemingDefaults;
+use OCA\Theming\Util;
 use OC\Authentication\Events\LoginFailed;
+use OC\Authentication\Events\RemoteWipeFinished;
+use OC\Authentication\Events\RemoteWipeStarted;
 use OC\Authentication\Listeners\LoginFailedListener;
+use OC\Authentication\Listeners\RemoteWipeActivityListener;
+use OC\Authentication\Listeners\RemoteWipeEmailListener;
+use OC\Authentication\Listeners\RemoteWipeNotificationsListener;
+use OC\Authentication\Listeners\UserDeletedFilesCleanupListener;
+use OC\Authentication\Listeners\UserDeletedStoreCleanupListener;
+use OC\Authentication\Listeners\UserDeletedTokenCleanupListener;
+use OC\Authentication\Listeners\UserDeletedWebAuthnCleanupListener;
 use OC\Authentication\Listeners\UserLoggedInListener;
 use OC\Authentication\LoginCredentials\Store;
 use OC\Authentication\Token\IProvider;
 use OC\Avatar\AvatarManager;
+use OCA\WorkflowEngine\Service\Logger;
 use OC\Collaboration\Collaborators\GroupPlugin;
 use OC\Collaboration\Collaborators\MailPlugin;
 use OC\Collaboration\Collaborators\RemoteGroupPlugin;
@@ -79,6 +97,10 @@ use OC\Contacts\ContactsMenu\ContactsStore;
 use OC\Dashboard\DashboardManager;
 use OC\DB\Connection;
 use OC\DB\ConnectionAdapter;
+use OC\DB\MissingColumnInformation;
+use OC\DB\MissingIndexInformation;
+use OC\DB\MissingPrimaryKeyInformation;
+use OC\DB\SchemaWrapper;
 use OC\Diagnostics\EventLogger;
 use OC\Diagnostics\QueryLogger;
 use OC\EventDispatcher\SymfonyAdapter;
@@ -107,12 +129,12 @@ use OC\IntegrityCheck\Checker;
 use OC\IntegrityCheck\Helpers\AppLocator;
 use OC\IntegrityCheck\Helpers\EnvironmentHelper;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
-use OC\LDAP\NullLDAPProviderFactory;
 use OC\KnownUser\KnownUserService;
+use OC\LDAP\NullLDAPProviderFactory;
 use OC\Lock\DBLockingProvider;
+use OC\Lockdown\LockdownManager;
 use OC\Lock\MemcacheLockingProvider;
 use OC\Lock\NoopLockingProvider;
-use OC\Lockdown\LockdownManager;
 use OC\Log\LogFactory;
 use OC\Log\PsrLoggerAdapter;
 use OC\Mail\Mailer;
@@ -120,34 +142,8 @@ use OC\Memcache\ArrayCache;
 use OC\Memcache\Factory;
 use OC\Notification\Manager;
 use OC\OCS\DiscoveryService;
-use OC\Preview\GeneratorHelper;
-use OC\Remote\Api\ApiFactory;
-use OC\Remote\InstanceFactory;
-use OC\RichObjectStrings\Validator;
-use OC\Route\Router;
-use OC\Security\Bruteforce\Throttler;
-use OC\Security\CertificateManager;
-use OC\Security\CredentialsManager;
-use OC\Security\Crypto;
-use OC\Security\CSP\ContentSecurityPolicyManager;
-use OC\Security\CSP\ContentSecurityPolicyNonceManager;
-use OC\Security\CSRF\CsrfTokenManager;
-use OC\Security\CSRF\TokenStorage\SessionStorage;
-use OC\Security\Hasher;
-use OC\Security\SecureRandom;
-use OC\Security\TrustedDomainHelper;
-use OC\Security\VerificationToken\VerificationToken;
-use OC\Session\CryptoWrapper;
-use OC\Share20\ProviderFactory;
-use OC\Share20\ShareHelper;
-use OC\SystemTag\ManagerFactory as SystemTagManagerFactory;
-use OC\Tagging\TagMapper;
-use OC\Template\JSCombiner;
-use OCA\Theming\ImageManager;
-use OCA\Theming\ThemingDefaults;
-use OCA\Theming\Util;
-use OCA\WorkflowEngine\Service\Logger;
 use OCP\Accounts\IAccountManager;
+use OCP\AppFramework\App;
 use OCP\App\IAppManager;
 use OCP\Authentication\LoginCredentials\IStore;
 use OCP\BackgroundJob\IJobList;
@@ -219,6 +215,7 @@ use OCP\Log\ILogFactory;
 use OCP\Mail\IMailer;
 use OCP\Remote\Api\IApiFactory;
 use OCP\Remote\IInstanceFactory;
+use OC\Preview\GeneratorHelper;
 use OCP\RichObjectStrings\IValidator;
 use OCP\Route\IRouter;
 use OCP\Security\IContentSecurityPolicyManager;
@@ -244,15 +241,33 @@ use OCP\User\Events\UserDeletedEvent;
 use OCP\User\Events\UserLoggedInEvent;
 use OCP\User\Events\UserLoggedInWithCookieEvent;
 use OCP\User\Events\UserLoggedOutEvent;
+use OC\Remote\Api\ApiFactory;
+use OC\Remote\InstanceFactory;
+use OC\RichObjectStrings\Validator;
+use OC\Route\Router;
+use OC\Security\Bruteforce\Throttler;
+use OC\Security\CertificateManager;
+use OC\Security\CredentialsManager;
+use OC\Security\Crypto;
+use OC\Security\CSP\ContentSecurityPolicyManager;
+use OC\Security\CSP\ContentSecurityPolicyNonceManager;
+use OC\Security\CSRF\CsrfTokenManager;
+use OC\Security\CSRF\TokenStorage\SessionStorage;
+use OC\Security\Hasher;
+use OC\Security\SecureRandom;
+use OC\Security\TrustedDomainHelper;
+use OC\Security\VerificationToken\VerificationToken;
+use OC\Session\CryptoWrapper;
+use OC\Share20\ProviderFactory;
+use OC\Share20\ShareHelper;
+use OC\SystemTag\ManagerFactory as SystemTagManagerFactory;
+use OC\Tagging\TagMapper;
+use OC\Template\JSCombiner;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
-use OCA\Files_External\Service\UserStoragesService;
-use OCA\Files_External\Service\UserGlobalStoragesService;
-use OCA\Files_External\Service\GlobalStoragesService;
-use OCA\Files_External\Service\BackendService;
 
 /**
  * Class Server
@@ -1429,10 +1444,10 @@ class Server extends ServerContainer implements IServerContainer {
 	}
 
 	private function connectDispatcher() {
-		$dispatcher = $this->get(SymfonyAdapter::class);
+		$oldEventDispatcher = $this->get(SymfonyAdapter::class);
 
 		// Delete avatar on user deletion
-		$dispatcher->addListener('OCP\IUser::preDelete', function (GenericEvent $e) {
+		$oldEventDispatcher->addListener('OCP\IUser::preDelete', function (GenericEvent $e) {
 			$logger = $this->get(ILogger::class);
 			$manager = $this->getAvatarManager();
 			/** @var IUser $user */
@@ -1449,7 +1464,7 @@ class Server extends ServerContainer implements IServerContainer {
 			}
 		});
 
-		$dispatcher->addListener('OCP\IUser::changeUser', function (GenericEvent $e) {
+		$oldEventDispatcher->addListener('OCP\IUser::changeUser', function (GenericEvent $e) {
 			$manager = $this->getAvatarManager();
 			/** @var IUser $user */
 			$user = $e->getSubject();
@@ -1470,10 +1485,224 @@ class Server extends ServerContainer implements IServerContainer {
 			}
 		});
 
-		/** @var IEventDispatcher $eventDispatched */
-		$eventDispatched = $this->get(IEventDispatcher::class);
-		$eventDispatched->addServiceListener(LoginFailed::class, LoginFailedListener::class);
-		$eventDispatched->addServiceListener(PostLoginEvent::class, UserLoggedInListener::class);
+		$oldEventDispatcher->addListener(IDBConnection::CHECK_MISSING_INDEXES_EVENT,
+			function (GenericEvent $event) {
+				/** @var MissingIndexInformation $subject */
+				$subject = $event->getSubject();
+
+				$schema = new SchemaWrapper($this->get(Connection::class));
+
+				if ($schema->hasTable('share')) {
+					$table = $schema->getTable('share');
+
+					if (!$table->hasIndex('share_with_index')) {
+						$subject->addHintForMissingSubject($table->getName(), 'share_with_index');
+					}
+					if (!$table->hasIndex('parent_index')) {
+						$subject->addHintForMissingSubject($table->getName(), 'parent_index');
+					}
+					if (!$table->hasIndex('owner_index')) {
+						$subject->addHintForMissingSubject($table->getName(), 'owner_index');
+					}
+					if (!$table->hasIndex('initiator_index')) {
+						$subject->addHintForMissingSubject($table->getName(), 'initiator_index');
+					}
+				}
+
+				if ($schema->hasTable('filecache')) {
+					$table = $schema->getTable('filecache');
+
+					if (!$table->hasIndex('fs_mtime')) {
+						$subject->addHintForMissingSubject($table->getName(), 'fs_mtime');
+					}
+
+					if (!$table->hasIndex('fs_size')) {
+						$subject->addHintForMissingSubject($table->getName(), 'fs_size');
+					}
+
+					if (!$table->hasIndex('fs_id_storage_size')) {
+						$subject->addHintForMissingSubject($table->getName(), 'fs_id_storage_size');
+					}
+
+					if (!$table->hasIndex('fs_storage_path_prefix') && !$schema->getDatabasePlatform() instanceof PostgreSQL94Platform) {
+						$subject->addHintForMissingSubject($table->getName(), 'fs_storage_path_prefix');
+					}
+				}
+
+				if ($schema->hasTable('twofactor_providers')) {
+					$table = $schema->getTable('twofactor_providers');
+
+					if (!$table->hasIndex('twofactor_providers_uid')) {
+						$subject->addHintForMissingSubject($table->getName(), 'twofactor_providers_uid');
+					}
+				}
+
+				if ($schema->hasTable('login_flow_v2')) {
+					$table = $schema->getTable('login_flow_v2');
+
+					if (!$table->hasIndex('poll_token')) {
+						$subject->addHintForMissingSubject($table->getName(), 'poll_token');
+					}
+					if (!$table->hasIndex('login_token')) {
+						$subject->addHintForMissingSubject($table->getName(), 'login_token');
+					}
+					if (!$table->hasIndex('timestamp')) {
+						$subject->addHintForMissingSubject($table->getName(), 'timestamp');
+					}
+				}
+
+				if ($schema->hasTable('whats_new')) {
+					$table = $schema->getTable('whats_new');
+
+					if (!$table->hasIndex('version')) {
+						$subject->addHintForMissingSubject($table->getName(), 'version');
+					}
+				}
+
+				if ($schema->hasTable('cards')) {
+					$table = $schema->getTable('cards');
+
+					if (!$table->hasIndex('cards_abid')) {
+						$subject->addHintForMissingSubject($table->getName(), 'cards_abid');
+					}
+
+					if (!$table->hasIndex('cards_abiduri')) {
+						$subject->addHintForMissingSubject($table->getName(), 'cards_abiduri');
+					}
+				}
+
+				if ($schema->hasTable('cards_properties')) {
+					$table = $schema->getTable('cards_properties');
+
+					if (!$table->hasIndex('cards_prop_abid')) {
+						$subject->addHintForMissingSubject($table->getName(), 'cards_prop_abid');
+					}
+				}
+
+				if ($schema->hasTable('calendarobjects_props')) {
+					$table = $schema->getTable('calendarobjects_props');
+
+					if (!$table->hasIndex('calendarobject_calid_index')) {
+						$subject->addHintForMissingSubject($table->getName(), 'calendarobject_calid_index');
+					}
+				}
+
+				if ($schema->hasTable('schedulingobjects')) {
+					$table = $schema->getTable('schedulingobjects');
+					if (!$table->hasIndex('schedulobj_principuri_index')) {
+						$subject->addHintForMissingSubject($table->getName(), 'schedulobj_principuri_index');
+					}
+				}
+
+				if ($schema->hasTable('properties')) {
+					$table = $schema->getTable('properties');
+					if (!$table->hasIndex('properties_path_index')) {
+						$subject->addHintForMissingSubject($table->getName(), 'properties_path_index');
+					}
+					if (!$table->hasIndex('properties_pathonly_index')) {
+						$subject->addHintForMissingSubject($table->getName(), 'properties_pathonly_index');
+					}
+				}
+
+				if ($schema->hasTable('jobs')) {
+					$table = $schema->getTable('jobs');
+					if (!$table->hasIndex('job_lastcheck_reserved')) {
+						$subject->addHintForMissingSubject($table->getName(), 'job_lastcheck_reserved');
+					}
+				}
+			}
+		);
+
+		$oldEventDispatcher->addListener(IDBConnection::CHECK_MISSING_PRIMARY_KEYS_EVENT,
+			function (GenericEvent $event) {
+				/** @var MissingPrimaryKeyInformation $subject */
+				$subject = $event->getSubject();
+
+				$schema = new SchemaWrapper($this->get(Connection::class));
+
+				if ($schema->hasTable('federated_reshares')) {
+					$table = $schema->getTable('federated_reshares');
+
+					if (!$table->hasPrimaryKey()) {
+						$subject->addHintForMissingSubject($table->getName());
+					}
+				}
+
+				if ($schema->hasTable('systemtag_object_mapping')) {
+					$table = $schema->getTable('systemtag_object_mapping');
+
+					if (!$table->hasPrimaryKey()) {
+						$subject->addHintForMissingSubject($table->getName());
+					}
+				}
+
+				if ($schema->hasTable('comments_read_markers')) {
+					$table = $schema->getTable('comments_read_markers');
+
+					if (!$table->hasPrimaryKey()) {
+						$subject->addHintForMissingSubject($table->getName());
+					}
+				}
+
+				if ($schema->hasTable('collres_resources')) {
+					$table = $schema->getTable('collres_resources');
+
+					if (!$table->hasPrimaryKey()) {
+						$subject->addHintForMissingSubject($table->getName());
+					}
+				}
+
+				if ($schema->hasTable('collres_accesscache')) {
+					$table = $schema->getTable('collres_accesscache');
+
+					if (!$table->hasPrimaryKey()) {
+						$subject->addHintForMissingSubject($table->getName());
+					}
+				}
+
+				if ($schema->hasTable('filecache_extended')) {
+					$table = $schema->getTable('filecache_extended');
+
+					if (!$table->hasPrimaryKey()) {
+						$subject->addHintForMissingSubject($table->getName());
+					}
+				}
+			}
+		);
+
+		$oldEventDispatcher->addListener(IDBConnection::CHECK_MISSING_COLUMNS_EVENT,
+			function (GenericEvent $event) {
+				/** @var MissingColumnInformation $subject */
+				$subject = $event->getSubject();
+
+				$schema = new SchemaWrapper($this->get(Connection::class));
+
+				if ($schema->hasTable('comments')) {
+					$table = $schema->getTable('comments');
+
+					if (!$table->hasColumn('reference_id')) {
+						$subject->addHintForMissingColumn($table->getName(), 'reference_id');
+					}
+				}
+			}
+		);
+
+		/** @var IEventDispatcher $eventDispatcher */
+		$eventDispatcher = $this->get(IEventDispatcher::class);
+		$eventDispatcher->addServiceListener(LoginFailed::class, LoginFailedListener::class);
+		$eventDispatcher->addServiceListener(PostLoginEvent::class, UserLoggedInListener::class);
+
+		$eventDispatcher->addServiceListener(RemoteWipeStarted::class, RemoteWipeActivityListener::class);
+		$eventDispatcher->addServiceListener(RemoteWipeStarted::class, RemoteWipeNotificationsListener::class);
+		$eventDispatcher->addServiceListener(RemoteWipeStarted::class, RemoteWipeEmailListener::class);
+		$eventDispatcher->addServiceListener(RemoteWipeFinished::class, RemoteWipeActivityListener::class);
+		$eventDispatcher->addServiceListener(RemoteWipeFinished::class, RemoteWipeNotificationsListener::class);
+		$eventDispatcher->addServiceListener(RemoteWipeFinished::class, RemoteWipeEmailListener::class);
+		$eventDispatcher->addServiceListener(UserDeletedEvent::class, UserDeletedStoreCleanupListener::class);
+		$eventDispatcher->addServiceListener(UserDeletedEvent::class, UserDeletedTokenCleanupListener::class);
+		$eventDispatcher->addServiceListener(BeforeUserDeletedEvent::class, UserDeletedFilesCleanupListener::class);
+		$eventDispatcher->addServiceListener(UserDeletedEvent::class, UserDeletedFilesCleanupListener::class);
+		$eventDispatcher->addServiceListener(UserDeletedEvent::class, UserDeletedWebAuthnCleanupListener::class);
 	}
 
 	/**
