@@ -1559,13 +1559,14 @@
     </RedundantCondition>
     <UndefinedClass occurrences="2">
       <code>\OCA\Circles\Api\v1\Circles</code>
-      <code>\OCA\Circles\Api\v1\Circles</code>
+      <code>\OCA\Circles\CirclesManager</code>
     </UndefinedClass>
-    <UndefinedDocblockClass occurrences="4">
+    <UndefinedDocblockClass occurrences="5">
       <code>$this-&gt;getRoomShareHelper()</code>
       <code>$this-&gt;getRoomShareHelper()</code>
       <code>$this-&gt;getRoomShareHelper()</code>
       <code>\OCA\Talk\Share\Helper\ShareAPIController</code>
+      <code>\OCA\Circles\CirclesManager</code>
     </UndefinedDocblockClass>
   </file>
   <file src="apps/files_sharing/lib/Controller/ShareController.php">
