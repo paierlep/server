@@ -174,7 +174,7 @@ class FilesReportPlugin extends ServerPlugin {
 	 * REPORT operations to look for files
 	 *
 	 * @param string $reportName
-	 * @param array $report
+	 * @param array|object $report
 	 * @param string $uri
 	 * @return bool|void
 	 * @throws BadRequest
@@ -182,7 +182,7 @@ class FilesReportPlugin extends ServerPlugin {
 	 * @throws PreconditionFailed|NotFoundException
 	 * @internal param $ [] $report
 	 */
-	public function onReport(string $reportName, array $report, string $uri) {
+	public function onReport(string $reportName, $report, string $uri) {
 		$reportTargetNode = $this->server->tree->getNodeForPath($uri);
 		if (!$reportTargetNode instanceof Directory || $reportName !== self::REPORT_NAME) {
 			return;
