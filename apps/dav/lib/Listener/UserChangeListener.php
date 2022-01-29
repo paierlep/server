@@ -93,7 +93,11 @@ class UserChangeListener implements IEventListener {
 				$this->postCreateUser($user);
 			}
 		});
-		$this->userManager->listen('\OC\User', 'preUnassignedUserId', [$this, 'preUnassignedUserId']);
+		$this->userManager->listen('\OC\User', 'preUnassignedUserId', function ($uid): void {
+			if ($user = $this->userManager->get($uid)) {
+				$this->usersToDelete[$uid] = $user;
+			}
+		});
 		$this->userManager->listen('\OC\User', 'postUnassignedUserId', function ($uid) {
 			$this->postDeleteUser($uid);
 		});
@@ -130,12 +134,6 @@ class UserChangeListener implements IEventListener {
 		$this->calendarsToDelete = $this->calDavBackend->getUsersOwnCalendars($userPrincipalUri);
 		$this->subscriptionsToDelete = $this->calDavBackend->getSubscriptionsForUser($userPrincipalUri);
 		$this->addressBooksToDelete = $this->cardDavBackend->getUsersOwnAddressBooks($userPrincipalUri);
-	}
-
-	private function preUnassignedUserId(string $uid): void {
-		if ($user = $this->userManager->get($uid)) {
-			$this->usersToDelete[$uid] = $user;
-		}
 	}
 
 	/**
