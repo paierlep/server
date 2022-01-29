@@ -99,5 +99,6 @@ module.exports = {
 	},
 	profiler: {
 		profiler: path.join(__dirname, 'apps/profiler/src', 'main.js'),
+		profilerToolbar: path.join(__dirname, 'apps/profiler/src', 'toolbar.js'),
 	},
 }
