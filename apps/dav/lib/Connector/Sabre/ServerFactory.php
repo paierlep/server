@@ -168,6 +168,7 @@ class ServerFactory {
 			if ($user = \OC::$server->get(IUserSession::class)->getUser()) {
 				/** @var IRootFolder $root */
 				$rootInfo = $root->getUserFolder($user->getUID());
+				$userFolder = $rootInfo;
 			} else {
 				$rootInfo = $root;
 			}
@@ -194,7 +195,7 @@ class ServerFactory {
 					!$this->config->getSystemValue('debug', false)
 				)
 			);
-			$server->addPlugin(new QuotaPlugin($view, true));
+			$server->addPlugin(new QuotaPlugin($view));
 
 			if ($this->userSession->isLoggedIn()) {
 				$server->addPlugin(new TagsPlugin($objectTree, $this->tagManager));

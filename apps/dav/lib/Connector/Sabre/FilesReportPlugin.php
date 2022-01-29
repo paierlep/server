@@ -423,7 +423,7 @@ class FilesReportPlugin extends ServerPlugin {
 				$entry = current($entry);
 				if ($entry instanceof \OCP\Files\File) {
 					$results[] = new File($this->fileView, $entry);
-				} elseif ($entry instanceof \OCP\Files\Folder) {
+				} elseif ($entry instanceof Folder) {
 					$results[] = new Directory($this->fileView, $entry);
 				}
 			}

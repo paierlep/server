@@ -38,6 +38,7 @@ namespace OCA\DAV\Connector\Sabre;
 use OC\Files\Mount\MoveableMount;
 use OC\Files\View;
 use OCA\DAV\Connector\Sabre\Exception\InvalidPath;
+use OCA\Files_Sharing\SharedStorage;
 use OCP\Constants;
 use OCP\Files\FileInfo;
 use OCP\Files\InvalidPathException;
@@ -226,7 +227,7 @@ abstract class Node implements INode {
 	 *
 	 * @return integer
 	 */
-	public function getSize(): int {
+	public function getSize(): ?int {
 		return $this->info->getSize();
 	}
 
@@ -281,8 +282,8 @@ abstract class Node implements INode {
 			$storage = null;
 		}
 
-		if ($storage && $storage->instanceOfStorage('\OCA\Files_Sharing\SharedStorage')) {
-			/** @var \OCA\Files_Sharing\SharedStorage $storage */
+		if ($storage && $storage->instanceOfStorage(SharedStorage::class)) {
+			/** @var SharedStorage $storage */
 			$permissions = (int)$storage->getShare()->getPermissions();
 		} else {
 			$permissions = $this->info->getPermissions();
