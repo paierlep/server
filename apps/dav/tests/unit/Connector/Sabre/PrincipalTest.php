@@ -474,7 +474,7 @@ class PrincipalTest extends TestCase {
 	/**
 	 * @dataProvider searchPrincipalsDataProvider
 	 */
-	public function testSearchPrincipals($sharingEnabled, $groupsOnly, $test, $result): void {
+	public function testSearchPrincipals(bool $sharingEnabled, bool $groupsOnly, string $test, array $result): void {
 		$this->shareManager->expects($this->once())
 			->method('shareAPIEnabled')
 			->willReturn($sharingEnabled);
@@ -830,7 +830,7 @@ class PrincipalTest extends TestCase {
 	/**
 	 * @dataProvider findByUriWithGroupRestrictionDataProvider
 	 */
-	public function testFindByUriWithGroupRestriction($uri, $email, $expects): void {
+	public function testFindByUriWithGroupRestriction(string $uri, string $email, ?string $expects): void {
 		$this->shareManager->expects($this->once())
 			->method('shareApiEnabled')
 			->willReturn(true);
@@ -879,7 +879,7 @@ class PrincipalTest extends TestCase {
 	/**
 	 * @dataProvider findByUriWithoutGroupRestrictionDataProvider
 	 */
-	public function testFindByUriWithoutGroupRestriction($uri, $email, $expects): void {
+	public function testFindByUriWithoutGroupRestriction(string $uri, string $email, string $expects): void {
 		$this->shareManager->expects($this->once())
 			->method('shareApiEnabled')
 			->willReturn(true);

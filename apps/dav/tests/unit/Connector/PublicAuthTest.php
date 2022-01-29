@@ -97,9 +97,7 @@ class PublicAuthTest extends TestCase {
 	}
 
 	public function testShareNoPassword() {
-		$share = $this->getMockBuilder(IShare::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$share = $this->createMock(IShare::class);
 		$share->method('getPassword')->willReturn(null);
 
 		$this->shareManager->expects($this->once())
@@ -112,9 +110,7 @@ class PublicAuthTest extends TestCase {
 	}
 
 	public function testSharePasswordFancyShareType() {
-		$share = $this->getMockBuilder(IShare::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$share = $this->createMock(IShare::class);
 		$share->method('getPassword')->willReturn('password');
 		$share->method('getShareType')->willReturn(42);
 

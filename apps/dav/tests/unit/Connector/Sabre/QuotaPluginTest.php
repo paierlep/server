@@ -60,7 +60,7 @@ class QuotaPluginTest extends TestCase {
 		$this->server = new Server();
 		$this->plugin = $this->getMockBuilder(QuotaPlugin::class)
 			->setConstructorArgs([$view])
-			->setMethods(['getFileChunking'])
+			->onlyMethods(['getFileChunking'])
 			->getMock();
 		$this->plugin->initialize($this->server);
 	}
@@ -68,7 +68,7 @@ class QuotaPluginTest extends TestCase {
 	/**
 	 * @dataProvider lengthProvider
 	 */
-	public function testLength($expected, $headers) {
+	public function testLength(?int $expected, array $headers) {
 		$this->init(0);
 		$this->plugin->expects($this->never())
 			->method('getFileChunking');
@@ -81,7 +81,7 @@ class QuotaPluginTest extends TestCase {
 	 * @dataProvider quotaOkayProvider
 	 * @throws InsufficientStorage|ServiceUnavailable
 	 */
-	public function testCheckQuota($quota, $headers) {
+	public function testCheckQuota(int $quota, array $headers) {
 		$this->init($quota);
 		$this->plugin->expects($this->never())
 			->method('getFileChunking');
@@ -95,7 +95,7 @@ class QuotaPluginTest extends TestCase {
 	 * @dataProvider quotaExceededProvider
 	 * @throws InsufficientStorage|ServiceUnavailable
 	 */
-	public function testCheckExceededQuota($quota, $headers) {
+	public function testCheckExceededQuota(int $quota, array $headers) {
 		$this->expectException(InsufficientStorage::class);
 
 		$this->init($quota);
@@ -110,7 +110,7 @@ class QuotaPluginTest extends TestCase {
 	 * @dataProvider quotaOkayProvider
 	 * @throws InsufficientStorage|ServiceUnavailable
 	 */
-	public function testCheckQuotaOnPath($quota, $headers) {
+	public function testCheckQuotaOnPath(int $quota, array $headers) {
 		$this->init($quota, 'sub/test.txt');
 		$this->plugin->expects($this->never())
 			->method('getFileChunking');
@@ -186,12 +186,10 @@ class QuotaPluginTest extends TestCase {
 	 * @dataProvider quotaChunkedOkProvider
 	 * @throws InsufficientStorage|ServiceUnavailable
 	 */
-	public function testCheckQuotaChunkedOk($quota, $chunkTotalSize, $headers) {
+	public function testCheckQuotaChunkedOk(int $quota, int $chunkTotalSize, array $headers) {
 		$this->init($quota, 'sub/test.txt');
 
-		$mockChunking = $this->getMockBuilder(OC_FileChunking::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$mockChunking = $this->createMock(OC_FileChunking::class);
 		$mockChunking->expects($this->once())
 			->method('getCurrentSize')
 			->willReturn($chunkTotalSize);
@@ -222,14 +220,12 @@ class QuotaPluginTest extends TestCase {
 	 * @dataProvider quotaChunkedFailProvider
 	 * @throws ServiceUnavailable
 	 */
-	public function testCheckQuotaChunkedFail($quota, $chunkTotalSize, $headers) {
+	public function testCheckQuotaChunkedFail(int $quota, int $chunkTotalSize, array $headers) {
 		$this->expectException(InsufficientStorage::class);
 
 		$this->init($quota, 'sub/test.txt');
 
-		$mockChunking = $this->getMockBuilder(OC_FileChunking::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$mockChunking = $this->createMock(OC_FileChunking::class);
 		$mockChunking->expects($this->once())
 			->method('getCurrentSize')
 			->willReturn($chunkTotalSize);

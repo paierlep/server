@@ -81,9 +81,7 @@ class EntityCollectionTest extends TestCase {
 			->method('get')
 			->with('55')
 			->willReturn(
-				$this->getMockBuilder(IComment::class)
-					->disableOriginalConstructor()
-					->getMock()
+				$this->createMock(IComment::class)
 			);
 
 		$node = $this->collection->getChild('55');
@@ -107,9 +105,7 @@ class EntityCollectionTest extends TestCase {
 			->method('getForObject')
 			->with('files', '19')
 			->willReturn([
-				$this->getMockBuilder(IComment::class)
-					->disableOriginalConstructor()
-					->getMock()
+				$this->createMock(IComment::class)
 			]);
 
 		$result = $this->collection->getChildren();
@@ -124,9 +120,7 @@ class EntityCollectionTest extends TestCase {
 			->method('getForObject')
 			->with('files', '19', 5, 15, $dt)
 			->willReturn([
-				$this->getMockBuilder(IComment::class)
-					->disableOriginalConstructor()
-					->getMock()
+				$this->createMock(IComment::class)
 			]);
 
 		$result = $this->collection->findChildren(5, 15, $dt);

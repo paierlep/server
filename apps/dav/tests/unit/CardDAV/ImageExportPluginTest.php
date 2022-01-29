@@ -71,9 +71,8 @@ class ImageExportPluginTest extends TestCase {
 
 	/**
 	 * @dataProvider providesQueryParams
-	 * @param $param
 	 */
-	public function testQueryParams($param) {
+	public function testQueryParams(array $param) {
 		$this->request->expects($this->once())->method('getQueryParameters')->willReturn($param);
 		$result = $this->plugin->httpGet($this->request, $this->response);
 		$this->assertTrue($result);

@@ -130,7 +130,7 @@ class CalDavBackendTest extends AbstractCalDavBackend {
 	 * @dataProvider providesSharingData
 	 * @throws Exception
 	 */
-	public function testCalendarSharing($userCanRead, $userCanWrite, $groupCanRead, $groupCanWrite, $add) {
+	public function testCalendarSharing(bool $userCanRead, bool $userCanWrite, bool $groupCanRead, bool $groupCanWrite, array $add) {
 
 		/** @var IL10N|MockObject $l10n */
 		$l10n = $this->createMock(IL10N::class);
@@ -435,7 +435,7 @@ EOD;
 	 * @throws BadRequest
 	 * @throws Exception
 	 */
-	public function testCalendarQuery($expectedEventsInResult, $propFilters, $compFilter) {
+	public function testCalendarQuery(array $expectedEventsInResult, array $propFilters, array $compFilter) {
 		$calendarId = $this->createTestCalendar();
 		$events = [];
 		$events[0] = $this->createEvent($calendarId);
@@ -665,7 +665,7 @@ EOS;
 	 * @dataProvider providesSchedulingData
 	 * @param $objectData
 	 */
-	public function testScheduling($objectData) {
+	public function testScheduling(string $objectData) {
 		$this->backend->createSchedulingObject(self::UNIT_TEST_USER, 'Sample Schedule', $objectData);
 
 		$sos = $this->backend->getSchedulingObjects(self::UNIT_TEST_USER);
@@ -684,7 +684,7 @@ EOS;
 	 * @dataProvider providesCalDataForGetDenormalizedData
 	 * @throws BadRequest
 	 */
-	public function testGetDenormalizedData($expected, $key, $calData) {
+	public function testGetDenormalizedData(?int $expected, string $key, string $calData) {
 		$actual = $this->backend->getDenormalizedData($calData);
 		$this->assertEquals($expected, $actual[$key]);
 	}

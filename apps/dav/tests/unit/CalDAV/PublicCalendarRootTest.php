@@ -109,8 +109,7 @@ class PublicCalendarRootTest extends TestCase {
 			$dispatcher,
 			$config
 		);
-		$this->l10n = $this->getMockBuilder(IL10N::class)
-			->disableOriginalConstructor()->getMock();
+		$this->l10n = $this->createMock(IL10N::class);
 		$this->config = $this->createMock(IConfig::class);
 
 		$this->publicCalendarRoot = new PublicCalendarRoot($this->backend,

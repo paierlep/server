@@ -92,15 +92,11 @@ class CopyEtagHeaderPluginTest extends TestCase {
 	}
 
 	public function testAfterMove() {
-		$node = $this->getMockBuilder(File::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(File::class);
 		$node->expects($this->once())
 			->method('getETag')
 			->willReturn('123456');
-		$tree = $this->getMockBuilder(Tree::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$tree = $this->createMock(Tree::class);
 		$tree->expects($this->once())
 			->method('getNodeForPath')
 			->with('test.txt')

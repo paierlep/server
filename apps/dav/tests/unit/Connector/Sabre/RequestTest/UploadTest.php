@@ -24,6 +24,7 @@
  */
 namespace OCA\DAV\Tests\unit\Connector\Sabre\RequestTest;
 
+use OC\Files\FileInfo;
 use OCA\DAV\Connector\Sabre\Exception\FileLocked;
 use OCP\AppFramework\Http;
 use OCP\Lock\ILockingProvider;
@@ -58,7 +59,7 @@ class UploadTest extends RequestTestCase {
 		$this->assertEquals('asd', $view->file_get_contents('foo.txt'));
 
 		$info = $view->getFileInfo('foo.txt');
-		$this->assertInstanceOf('\OC\Files\FileInfo', $info);
+		$this->assertInstanceOf(FileInfo::class, $info);
 		$this->assertEquals(3, $info->getSize());
 	}
 
@@ -80,7 +81,7 @@ class UploadTest extends RequestTestCase {
 		$this->assertEquals('asd', $view->file_get_contents('foo.txt'));
 
 		$info = $view->getFileInfo('foo.txt');
-		$this->assertInstanceOf('\OC\Files\FileInfo', $info);
+		$this->assertInstanceOf(FileInfo::class, $info);
 		$this->assertEquals(3, $info->getSize());
 	}
 
@@ -145,7 +146,7 @@ class UploadTest extends RequestTestCase {
 		$this->assertEquals('asdbar', $view->file_get_contents('foo.txt'));
 
 		$info = $view->getFileInfo('foo.txt');
-		$this->assertInstanceOf('\OC\Files\FileInfo', $info);
+		$this->assertInstanceOf(FileInfo::class, $info);
 		$this->assertEquals(6, $info->getSize());
 	}
 
@@ -172,7 +173,7 @@ class UploadTest extends RequestTestCase {
 		$this->assertEquals('asdbar', $view->file_get_contents('foo.txt'));
 
 		$info = $view->getFileInfo('foo.txt');
-		$this->assertInstanceOf('\OC\Files\FileInfo', $info);
+		$this->assertInstanceOf(FileInfo::class, $info);
 		$this->assertEquals(6, $info->getSize());
 	}
 
@@ -200,7 +201,7 @@ class UploadTest extends RequestTestCase {
 		$this->assertEquals('asdbar', $view->file_get_contents('foo.txt'));
 
 		$info = $view->getFileInfo('foo.txt');
-		$this->assertInstanceOf('\OC\Files\FileInfo', $info);
+		$this->assertInstanceOf(FileInfo::class, $info);
 		$this->assertEquals(6, $info->getSize());
 	}
 

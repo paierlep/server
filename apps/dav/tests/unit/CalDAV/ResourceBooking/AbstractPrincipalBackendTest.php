@@ -290,7 +290,7 @@ abstract class AbstractPrincipalBackendTest extends TestCase {
 	/**
 	 * @dataProvider dataSearchPrincipals
 	 */
-	public function testSearchPrincipals($expected, $test) {
+	public function testSearchPrincipals(array $expected, string $test) {
 		$user = $this->createMock(IUser::class);
 		$this->userSession->expects($this->once())
 			->method('getUser')

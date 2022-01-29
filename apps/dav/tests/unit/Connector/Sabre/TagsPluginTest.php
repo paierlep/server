@@ -75,15 +75,9 @@ class TagsPluginTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 		$server = new Server();
-		$this->tree = $this->getMockBuilder(Tree::class)
-			->disableOriginalConstructor()
-			->getMock();
-		$this->tagger = $this->getMockBuilder(ITags::class)
-			->disableOriginalConstructor()
-			->getMock();
-		$tagManager = $this->getMockBuilder(ITagManager::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$this->tree = $this->createMock(Tree::class);
+		$this->tagger = $this->createMock(ITags::class);
+		$tagManager = $this->createMock(ITagManager::class);
 		$tagManager->expects($this->any())
 			->method('load')
 			->with('files')
@@ -97,9 +91,7 @@ class TagsPluginTest extends TestCase {
 	 * @throws Locked|Forbidden
 	 */
 	public function testGetProperties(array $tags, array $requestedProperties, array $expectedProperties) {
-		$node = $this->getMockBuilder(Node::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(Node::class);
 		$node->expects($this->any())
 			->method('getId')
 			->willReturn(123);
@@ -137,15 +129,11 @@ class TagsPluginTest extends TestCase {
 	 * @throws Locked|Forbidden
 	 */
 	public function testPreloadThenGetProperties(array $tags, array $requestedProperties, array $expectedProperties) {
-		$node1 = $this->getMockBuilder(File::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node1 = $this->createMock(File::class);
 		$node1->expects($this->any())
 			->method('getId')
 			->willReturn(111);
-		$node2 = $this->getMockBuilder(File::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node2 = $this->createMock(File::class);
 		$node2->expects($this->any())
 			->method('getId')
 			->willReturn(222);
@@ -158,9 +146,7 @@ class TagsPluginTest extends TestCase {
 			$expectedCallCount = 1;
 		}
 
-		$node = $this->getMockBuilder(Directory::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(Directory::class);
 		$node->expects($this->any())
 			->method('getId')
 			->willReturn(123);
@@ -275,9 +261,7 @@ class TagsPluginTest extends TestCase {
 	 * @throws Locked
 	 */
 	public function testGetPropertiesSkipChunks(): void {
-		$sabreNode = $this->getMockBuilder(UploadFile::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$sabreNode = $this->createMock(UploadFile::class);
 
 		$propFind = new PropFind(
 			'/dummyPath',
@@ -300,9 +284,7 @@ class TagsPluginTest extends TestCase {
 	public function testUpdateTags() {
 		// this test will replace the existing tags "tagremove" with "tag1" and "tag2"
 		// and keep "tagkeep"
-		$node = $this->getMockBuilder(Node::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(Node::class);
 		$node->expects($this->any())
 			->method('getId')
 			->willReturn(123);
@@ -370,11 +352,12 @@ class TagsPluginTest extends TestCase {
 			->willReturn([]);
 
 		// then tag as tag1 and tag2
-		$this->tagger->expects($this->exactly(2))
+		$this->tagger->expects($this->exactly(3))
 			->method('tagAs')
 			->withConsecutive(
 				[123, 'tag1'],
-				[123, 'tag2']
+				[123, 'tag2'],
+				[123, 'tagkeep']
 			);
 
 		// properties to set
@@ -403,9 +386,7 @@ class TagsPluginTest extends TestCase {
 	public function testUpdateFav() {
 		// this test will replace the existing tags "tagremove" with "tag1" and "tag2"
 		// and keep "tagkeep"
-		$node = $this->getMockBuilder(Node::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(Node::class);
 		$node->expects($this->any())
 			->method('getId')
 			->willReturn(123);

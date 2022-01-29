@@ -36,11 +36,11 @@ use Test\TestCase;
 class ContactsManagerTest extends TestCase {
 	public function test() {
 		/** @var IManager | MockObject $cm */
-		$cm = $this->getMockBuilder(IManager::class)->disableOriginalConstructor()->getMock();
+		$cm = $this->createMock(IManager::class);
 		$cm->expects($this->exactly(2))->method('registerAddressBook');
-		$urlGenerator = $this->getMockBuilder(IURLGenerator::class)->disableOriginalConstructor()->getMock();
+		$urlGenerator = $this->createMock(IURLGenerator::class);
 		/** @var CardDavBackend | MockObject $backEnd */
-		$backEnd = $this->getMockBuilder(CardDavBackend::class)->disableOriginalConstructor()->getMock();
+		$backEnd = $this->createMock(CardDavBackend::class);
 		$backEnd->method('getAddressBooksForUser')->willReturn([
 			['{DAV:}displayname' => 'Test address book', 'uri' => 'default'],
 		]);

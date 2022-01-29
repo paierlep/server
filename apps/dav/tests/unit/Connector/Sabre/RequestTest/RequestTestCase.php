@@ -87,9 +87,7 @@ abstract class RequestTestCase extends TestCase {
 			OC::$server->get(IUserSession::class),
 			OC::$server->get(IMountManager::class),
 			OC::$server->get(ITagManager::class),
-			$this->getMockBuilder(IRequest::class)
-				->disableOriginalConstructor()
-				->getMock(),
+			$this->createMock(IRequest::class),
 			OC::$server->get(IPreview::class),
 			OC::$server->get(IEventDispatcher::class),
 			OC::$server->get(IFactory::class)->get('dav')

@@ -34,6 +34,7 @@ use OCP\Accounts\IAccountProperty;
 use OCP\IImage;
 use OCP\IUser;
 use PHPUnit\Framework\MockObject\MockObject;
+use Sabre\VObject\Component\VCard;
 use Test\TestCase;
 
 class ConverterTest extends TestCase {
@@ -83,9 +84,7 @@ class ConverterTest extends TestCase {
 				];
 			});
 
-		$accountManager = $this->getMockBuilder(IAccountManager::class)
-			->disableOriginalConstructor()->getMock();
-
+		$accountManager = $this->createMock(IAccountManager::class);
 		$accountManager->expects($this->any())->method('getAccount')->willReturn($account);
 
 		return $accountManager;
@@ -94,14 +93,14 @@ class ConverterTest extends TestCase {
 	/**
 	 * @dataProvider providesNewUsers
 	 */
-	public function testCreation($expectedVCard, $displayName = null, $eMailAddress = null, $cloudId = null) {
+	public function testCreation(?array $expectedVCard, ?string $displayName = null, ?string $eMailAddress = null, string $cloudId = null) {
 		$user = $this->getUserMock((string)$displayName, $eMailAddress, $cloudId);
 		$accountManager = $this->getAccountManager($user);
 
 		$converter = new Converter($accountManager);
 		$vCard = $converter->createCardFromUser($user);
 		if ($expectedVCard !== null) {
-			$this->assertInstanceOf('Sabre\VObject\Component\VCard', $vCard);
+			$this->assertInstanceOf(VCard::class, $vCard);
 			$cardData = $vCard->jsonSerialize();
 			$this->compareData($expectedVCard, $cardData);
 		} else {
@@ -180,10 +179,8 @@ class ConverterTest extends TestCase {
 
 	/**
 	 * @dataProvider providesNames
-	 * @param $expected
-	 * @param $fullName
 	 */
-	public function testNameSplitter($expected, $fullName) {
+	public function testNameSplitter(string $expected, string $fullName) {
 		$converter = new Converter($this->accountManager);
 		$r = $converter->splitFullName($fullName);
 		$r = implode(';', $r);
@@ -202,10 +199,10 @@ class ConverterTest extends TestCase {
 	 * @return IUser | MockObject
 	 */
 	protected function getUserMock(string $displayName, ?string $eMailAddress, ?string $cloudId) {
-		$image0 = $this->getMockBuilder(IImage::class)->disableOriginalConstructor()->getMock();
+		$image0 = $this->createMock(IImage::class);
 		$image0->method('mimeType')->willReturn('image/jpeg');
 		$image0->method('data')->willReturn('123456789');
-		$user = $this->getMockBuilder(IUser::class)->disableOriginalConstructor()->getMock();
+		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('12345');
 		$user->method('getDisplayName')->willReturn($displayName);
 		$user->method('getEMailAddress')->willReturn($eMailAddress);

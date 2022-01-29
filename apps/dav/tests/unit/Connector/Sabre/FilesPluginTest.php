@@ -127,9 +127,7 @@ class FilesPluginTest extends TestCase {
 			$this->userSession
 		);
 
-		$response = $this->getMockBuilder(ResponseInterface::class)
-				->disableOriginalConstructor()
-				->getMock();
+		$response = $this->createMock(ResponseInterface::class);
 		$this->server->httpResponse = $response;
 		$this->server->xml = new Service();
 
@@ -197,8 +195,7 @@ class FilesPluginTest extends TestCase {
 			0
 		);
 
-		$user = $this->getMockBuilder(User::class)
-			->disableOriginalConstructor()->getMock();
+		$user = $this->createMock(User::class);
 		$user
 			->expects($this->once())
 			->method('getUID')
@@ -261,9 +258,7 @@ class FilesPluginTest extends TestCase {
 		$this->plugin = new FilesPlugin(
 			$this->tree,
 			$this->config,
-			$this->getMockBuilder(IRequest::class)
-				->disableOriginalConstructor()
-				->getMock(),
+			$this->createMock(IRequest::class),
 			$this->previewManager,
 			$this->userSession,
 			true);
@@ -328,9 +323,7 @@ class FilesPluginTest extends TestCase {
 
 	public function testGetPropertiesForRootDirectory() {
 		/** @var Directory|MockObject $node */
-		$node = $this->getMockBuilder(Directory::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(Directory::class);
 		$node->expects($this->any())->method('getPath')->willReturn('/');
 
 		$fileInfo = $this->createMock(FileInfo::class);
@@ -364,9 +357,7 @@ class FilesPluginTest extends TestCase {
 		// $this->expectException(\Sabre\DAV\Exception\NotFound::class);
 
 		/** @var Directory|MockObject $node */
-		$node = $this->getMockBuilder(Directory::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(Directory::class);
 		$node->expects($this->any())->method('getPath')->willReturn('/');
 
 		$fileInfo = $this->createMock(FileInfo::class);
@@ -485,16 +476,12 @@ class FilesPluginTest extends TestCase {
 		$this->expectException(Forbidden::class);
 		$this->expectExceptionMessage('FolderA/test.txt cannot be deleted');
 
-		$fileInfoFolderATestTXT = $this->getMockBuilder(FileInfo::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$fileInfoFolderATestTXT = $this->createMock(FileInfo::class);
 		$fileInfoFolderATestTXT->expects($this->once())
 			->method('isDeletable')
 			->willReturn(false);
 
-		$node = $this->getMockBuilder(Node::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(Node::class);
 		$node->expects($this->once())
 			->method('getFileInfo')
 			->willReturn($fileInfoFolderATestTXT);
@@ -510,16 +497,12 @@ class FilesPluginTest extends TestCase {
 	 * @throws NotFound
 	 */
 	public function testMoveSrcDeletable() {
-		$fileInfoFolderATestTXT = $this->getMockBuilder(FileInfo::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$fileInfoFolderATestTXT = $this->createMock(FileInfo::class);
 		$fileInfoFolderATestTXT->expects($this->once())
 			->method('isDeletable')
 			->willReturn(true);
 
-		$node = $this->getMockBuilder(Node::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(Node::class);
 		$node->expects($this->once())
 			->method('getFileInfo')
 			->willReturn($fileInfoFolderATestTXT);
@@ -567,21 +550,15 @@ class FilesPluginTest extends TestCase {
 	 * @throws NotFound
 	 */
 	public function testDownloadHeaders($isClumsyAgent, $contentDispositionHeader) {
-		$request = $this->getMockBuilder(RequestInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
-		$response = $this->getMockBuilder(ResponseInterface::class)
-				->disableOriginalConstructor()
-				->getMock();
+		$request = $this->createMock(RequestInterface::class);
+		$response = $this->createMock(ResponseInterface::class);
 
 		$request
 			->expects($this->once())
 			->method('getPath')
 			->willReturn('test/somefile.xml');
 
-		$node = $this->getMockBuilder(File::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(File::class);
 		$node
 			->expects($this->once())
 			->method('getName')

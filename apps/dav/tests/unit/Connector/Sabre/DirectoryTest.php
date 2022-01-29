@@ -35,11 +35,14 @@ use OC\Files\View;
 use OCA\DAV\Connector\Sabre\Directory;
 use OCA\DAV\Connector\Sabre\Exception\FileLocked;
 use OCA\DAV\Connector\Sabre\Exception\InvalidPath;
+use OCA\Files_Sharing\SharedStorage;
 use OCP\Files\ForbiddenException;
 use OCP\Files\InvalidPathException;
 use OCP\Files\Mount\IMountPoint;
 use OCP\Files\StorageNotAvailableException;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Sabre\DAV\Exception\BadRequest;
 use Sabre\DAV\Exception\Forbidden;
 use Sabre\DAV\Exception\Locked;
@@ -74,7 +77,7 @@ class TestViewDirectory extends View {
 		return $this->canRename;
 	}
 
-	public function getRelativePath($path) {
+	public function getRelativePath($path): ?string {
 		return $path;
 	}
 }
@@ -100,6 +103,10 @@ class DirectoryTest extends TestCase {
 			->willReturn(true);
 	}
 
+	/**
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
+	 */
 	private function getDir(string $path = '/'): Directory {
 		$this->view->expects($this->once())
 			->method('getRelativePath')
@@ -114,7 +121,10 @@ class DirectoryTest extends TestCase {
 
 
 	/**
+	 * @throws ContainerExceptionInterface
 	 * @throws FileLocked
+	 * @throws Forbidden
+	 * @throws NotFoundExceptionInterface
 	 */
 	public function testDeleteRootFolderFails() {
 		$this->expectException(Forbidden::class);
@@ -130,8 +140,10 @@ class DirectoryTest extends TestCase {
 
 
 	/**
+	 * @throws ContainerExceptionInterface
 	 * @throws FileLocked
 	 * @throws Forbidden
+	 * @throws NotFoundExceptionInterface
 	 */
 	public function testDeleteForbidden() {
 		$this->expectException(\OCA\DAV\Connector\Sabre\Exception\Forbidden::class);
@@ -153,8 +165,10 @@ class DirectoryTest extends TestCase {
 
 
 	/**
+	 * @throws ContainerExceptionInterface
 	 * @throws FileLocked
 	 * @throws Forbidden
+	 * @throws NotFoundExceptionInterface
 	 */
 	public function testDeleteFolderWhenAllowed() {
 		// deletion allowed
@@ -174,7 +188,10 @@ class DirectoryTest extends TestCase {
 
 
 	/**
+	 * @throws ContainerExceptionInterface
 	 * @throws FileLocked
+	 * @throws Forbidden
+	 * @throws NotFoundExceptionInterface
 	 */
 	public function testDeleteFolderFailsWhenNotAllowed() {
 		$this->expectException(Forbidden::class);
@@ -189,7 +206,10 @@ class DirectoryTest extends TestCase {
 
 
 	/**
+	 * @throws ContainerExceptionInterface
 	 * @throws FileLocked
+	 * @throws Forbidden
+	 * @throws NotFoundExceptionInterface
 	 */
 	public function testDeleteFolderThrowsWhenDeletionFailed() {
 		$this->expectException(Forbidden::class);
@@ -210,16 +230,18 @@ class DirectoryTest extends TestCase {
 	}
 
 	/**
-	 * @throws \OCA\DAV\Connector\Sabre\Exception\Forbidden
+	 * @throws ContainerExceptionInterface
+	 * @throws Forbidden
+	 * @throws InvalidPath
 	 * @throws Locked
+	 * @throws NotFound
+	 * @throws NotFoundExceptionInterface
+	 * @throws ServiceUnavailable
+	 * @throws \OCA\DAV\Connector\Sabre\Exception\Forbidden
 	 */
 	public function testGetChildren() {
-		$info1 = $this->getMockBuilder(FileInfo::class)
-			->disableOriginalConstructor()
-			->getMock();
-		$info2 = $this->getMockBuilder(FileInfo::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$info1 = $this->createMock(FileInfo::class);
+		$info2 = $this->createMock(FileInfo::class);
 		$info1->expects($this->any())
 			->method('getName')
 			->willReturn('first');
@@ -254,7 +276,13 @@ class DirectoryTest extends TestCase {
 
 
 	/**
+	 * @throws ContainerExceptionInterface
+	 * @throws Forbidden
+	 * @throws InvalidPath
 	 * @throws Locked
+	 * @throws NotFound
+	 * @throws NotFoundExceptionInterface
+	 * @throws ServiceUnavailable
 	 * @throws \OCA\DAV\Connector\Sabre\Exception\Forbidden
 	 */
 	public function testGetChildrenNoPermission() {
@@ -271,8 +299,12 @@ class DirectoryTest extends TestCase {
 
 
 	/**
+	 * @throws ContainerExceptionInterface
 	 * @throws InvalidPath
+	 * @throws NotFound
+	 * @throws NotFoundExceptionInterface
 	 * @throws ServiceUnavailable
+	 * @throws Forbidden
 	 */
 	public function testGetChildNoPermission() {
 		$this->expectException(NotFound::class);
@@ -287,8 +319,11 @@ class DirectoryTest extends TestCase {
 
 
 	/**
+	 * @throws ContainerExceptionInterface
 	 * @throws InvalidPath
 	 * @throws NotFound
+	 * @throws NotFoundExceptionInterface
+	 * @throws ServiceUnavailable|Forbidden
 	 */
 	public function testGetChildThrowStorageNotAvailableException() {
 		$this->expectException(ServiceUnavailable::class);
@@ -303,8 +338,11 @@ class DirectoryTest extends TestCase {
 
 
 	/**
+	 * @throws ContainerExceptionInterface
+	 * @throws InvalidPath
 	 * @throws NotFound
-	 * @throws ServiceUnavailable
+	 * @throws NotFoundExceptionInterface
+	 * @throws ServiceUnavailable|Forbidden
 	 */
 	public function testGetChildThrowInvalidPath() {
 		$this->expectException(InvalidPath::class);
@@ -319,19 +357,21 @@ class DirectoryTest extends TestCase {
 		$dir->getChild('.');
 	}
 
+	/**
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
+	 */
 	public function testGetQuotaInfoUnlimited() {
 		$mountPoint = $this->createMock(IMountPoint::class);
-		$storage = $this->getMockBuilder(Quota::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$storage = $this->createMock(Quota::class);
 		$mountPoint->method('getStorage')
 			->willReturn($storage);
 
 		$storage->expects($this->any())
 			->method('instanceOfStorage')
 			->willReturnMap([
-				'\OCA\Files_Sharing\SharedStorage' => false,
-				'\OC\Files\Storage\Wrapper\Quota' => false,
+				SharedStorage::class => false,
+				Quota::class => false,
 			]);
 
 		$storage->expects($this->never())
@@ -360,19 +400,24 @@ class DirectoryTest extends TestCase {
 		$this->assertEquals([200, -3], $dir->getQuotaInfo()); //200 used, unlimited
 	}
 
+	/**
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
+	 */
 	public function testGetQuotaInfoSpecific() {
 		$mountPoint = $this->createMock(IMountPoint::class);
+		//$storage = $this->createMock(Quota::class);
 		$storage = $this->getMockBuilder(Quota::class)
 			->disableOriginalConstructor()
 			->getMock();
 		$mountPoint->method('getStorage')
 			->willReturn($storage);
 
-		$storage->expects($this->any())
+		$storage->expects($this->exactly(2))
 			->method('instanceOfStorage')
 			->willReturnMap([
-				['\OCA\Files_Sharing\SharedStorage', false],
-				['\OC\Files\Storage\Wrapper\Quota', true],
+				[SharedStorage::class, false],
+				[Quota::class, true],
 			]);
 
 		$storage->expects($this->once())
@@ -386,6 +431,10 @@ class DirectoryTest extends TestCase {
 		$this->info->expects($this->once())
 			->method('getSize')
 			->willReturn(200);
+
+		$this->info->expects($this->any())
+			->method('getPath')
+			->willReturn('/sub');
 
 		$this->info->expects($this->once())
 			->method('getMountPoint')
@@ -405,8 +454,10 @@ class DirectoryTest extends TestCase {
 	/**
 	 * @dataProvider moveFailedProvider
 	 * @throws BadRequest
+	 * @throws ContainerExceptionInterface
 	 * @throws FileLocked
 	 * @throws Forbidden
+	 * @throws NotFoundExceptionInterface
 	 * @throws ServiceUnavailable
 	 * @throws \OCA\DAV\Connector\Sabre\Exception\Forbidden
 	 */
@@ -419,8 +470,10 @@ class DirectoryTest extends TestCase {
 	/**
 	 * @dataProvider moveSuccessProvider
 	 * @throws BadRequest
+	 * @throws ContainerExceptionInterface
 	 * @throws FileLocked
 	 * @throws Forbidden
+	 * @throws NotFoundExceptionInterface
 	 * @throws ServiceUnavailable
 	 * @throws \OCA\DAV\Connector\Sabre\Exception\Forbidden
 	 */
@@ -432,8 +485,10 @@ class DirectoryTest extends TestCase {
 	/**
 	 * @dataProvider moveFailedInvalidCharsProvider
 	 * @throws BadRequest
+	 * @throws ContainerExceptionInterface
 	 * @throws FileLocked
 	 * @throws Forbidden
+	 * @throws NotFoundExceptionInterface
 	 * @throws ServiceUnavailable
 	 * @throws \OCA\DAV\Connector\Sabre\Exception\Forbidden
 	 */
@@ -469,11 +524,14 @@ class DirectoryTest extends TestCase {
 	}
 
 	/**
-	 * @throws FileLocked
-	 * @throws \OCA\DAV\Connector\Sabre\Exception\Forbidden
 	 * @throws BadRequest
-	 * @throws ServiceUnavailable
+	 * @throws ContainerExceptionInterface
+	 * @throws FileLocked
 	 * @throws Forbidden
+	 * @throws NotFoundExceptionInterface
+	 * @throws ServiceUnavailable
+	 * @throws \OCA\DAV\Connector\Sabre\Exception\Forbidden
+	 * @throws Exception
 	 */
 	private function moveTest(string $source, string $destination, array $updatables, array $deletables) {
 		$view = new TestViewDirectory($updatables, $deletables);
@@ -494,10 +552,13 @@ class DirectoryTest extends TestCase {
 
 
 	/**
-	 * @throws FileLocked
-	 * @throws \OCA\DAV\Connector\Sabre\Exception\Forbidden
 	 * @throws BadRequest
+	 * @throws ContainerExceptionInterface
+	 * @throws FileLocked
+	 * @throws Forbidden
+	 * @throws NotFoundExceptionInterface
 	 * @throws ServiceUnavailable
+	 * @throws \OCA\DAV\Connector\Sabre\Exception\Forbidden
 	 * @throws Exception
 	 */
 	public function testFailingMove() {

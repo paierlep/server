@@ -55,6 +55,7 @@ use Sabre\DAV\Exception\PreconditionFailed;
 use Sabre\DAV\INode;
 use Sabre\DAV\Server;
 use Sabre\DAV\Tree;
+use Sabre\DAV\Xml\Property\ResourceType;
 use Sabre\HTTP\ResponseInterface;
 use Test\TestCase;
 
@@ -299,7 +300,7 @@ class FilesReportPluginTest extends TestCase {
 		$this->assertCount(2, $result);
 		$this->assertInstanceOf(Directory::class, $result[0]);
 		$this->assertEquals('first node', $result[0]->getName());
-		$this->assertInstanceOf(File::class, $result[1]);
+		$this->assertInstanceOf(SabreFile::class, $result[1]);
 		$this->assertEquals('second node', $result[1]->getName());
 	}
 
@@ -318,7 +319,7 @@ class FilesReportPluginTest extends TestCase {
 			->willReturn('second node');
 
 		$reportTargetNode = $this->createMock(Directory::class);
-		$reportTargetNode->expects($this->any())
+		$reportTargetNode->expects($this->exactly(2))
 			->method('getPath')
 			->willReturn('/sub1/sub2');
 
@@ -330,7 +331,7 @@ class FilesReportPluginTest extends TestCase {
 			->with('/sub1/sub2')
 			->willReturn($subNode);
 
-		$this->userFolder->expects($this->exactly(2))
+		$subNode->expects($this->exactly(2))
 			->method('getById')
 			->withConsecutive(
 				['111'], ['222']
@@ -400,14 +401,14 @@ class FilesReportPluginTest extends TestCase {
 		$props1 = $responses[0]->getResponseProperties();
 		$this->assertEquals('111', $props1[200]['{http://owncloud.org/ns}fileid']);
 		$this->assertNull($props1[404]['{DAV:}getcontentlength']);
-		$this->assertInstanceOf('\Sabre\DAV\Xml\Property\ResourceType', $props1[200]['{DAV:}resourcetype']);
+		$this->assertInstanceOf(ResourceType::class, $props1[200]['{DAV:}resourcetype']);
 		$resourceType1 = $props1[200]['{DAV:}resourcetype']->getValue();
 		$this->assertEquals('{DAV:}collection', $resourceType1[0]);
 
 		$props2 = $responses[1]->getResponseProperties();
 		$this->assertEquals('1024', $props2[200]['{DAV:}getcontentlength']);
 		$this->assertEquals('222', $props2[200]['{http://owncloud.org/ns}fileid']);
-		$this->assertInstanceOf('\Sabre\DAV\Xml\Property\ResourceType', $props2[200]['{DAV:}resourcetype']);
+		$this->assertInstanceOf(ResourceType::class, $props2[200]['{DAV:}resourcetype']);
 		$this->assertCount(0, $props2[200]['{DAV:}resourcetype']->getValue());
 	}
 
@@ -670,7 +671,7 @@ class FilesReportPluginTest extends TestCase {
 	/**
 	 * @dataProvider filesBaseUriProvider
 	 */
-	public function testFilesBaseUri($uri, $reportPath, $expectedUri) {
+	public function testFilesBaseUri(string $uri, string $reportPath, string $expectedUri) {
 		$this->assertEquals($expectedUri, $this->invokePrivate($this->plugin, 'getFilesBaseUri', [$uri, $reportPath]));
 	}
 }

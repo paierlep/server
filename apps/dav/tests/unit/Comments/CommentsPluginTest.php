@@ -100,16 +100,12 @@ class CommentsPluginTest extends TestCase {
 
 		$requestData = json_encode($commentData);
 
-		$user = $this->getMockBuilder(IUser::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$user = $this->createMock(IUser::class);
 		$user->expects($this->once())
 			->method('getUID')
 			->willReturn('alice');
 
-		$node = $this->getMockBuilder(EntityCollection::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(EntityCollection::class);
 		$node->expects($this->once())
 			->method('getName')
 			->willReturn('files');
@@ -139,14 +135,8 @@ class CommentsPluginTest extends TestCase {
 			->with('/' . $path)
 			->willReturn($node);
 
-		$request = $this->getMockBuilder(RequestInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
-
-		$response = $this->getMockBuilder(ResponseInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
-
+		$request = $this->createMock(RequestInterface::class);
+		$response = $this->createMock(ResponseInterface::class);
 		$request->expects($this->once())
 			->method('getPath')
 			->willReturn('/' . $path);
@@ -199,15 +189,11 @@ class CommentsPluginTest extends TestCase {
 
 		$path = 'comments/files/666';
 
-		$user = $this->getMockBuilder(IUser::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$user = $this->createMock(IUser::class);
 		$user->expects($this->never())
 			->method('getUID');
 
-		$node = $this->getMockBuilder(EntityCollection::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(EntityCollection::class);
 		$node->expects($this->never())
 			->method('getName');
 		$node->expects($this->never())
@@ -228,14 +214,8 @@ class CommentsPluginTest extends TestCase {
 			->with('/' . $path)
 			->will($this->throwException(new NotFound()));
 
-		$request = $this->getMockBuilder(RequestInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
-
-		$response = $this->getMockBuilder(ResponseInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
-
+		$request = $this->createMock(RequestInterface::class);
+		$response = $this->createMock(ResponseInterface::class);
 		$request->expects($this->once())
 			->method('getPath')
 			->willReturn('/' . $path);
@@ -286,15 +266,11 @@ class CommentsPluginTest extends TestCase {
 
 		$requestData = json_encode($commentData);
 
-		$user = $this->getMockBuilder(IUser::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$user = $this->createMock(IUser::class);
 		$user->expects($this->never())
 			->method('getUID');
 
-		$node = $this->getMockBuilder(EntityCollection::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(EntityCollection::class);
 		$node->expects($this->once())
 			->method('getName')
 			->willReturn('files');
@@ -317,14 +293,8 @@ class CommentsPluginTest extends TestCase {
 			->with('/' . $path)
 			->willReturn($node);
 
-		$request = $this->getMockBuilder(RequestInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
-
-		$response = $this->getMockBuilder(ResponseInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
-
+		$request = $this->createMock(RequestInterface::class);
+		$response = $this->createMock(ResponseInterface::class);
 		$request->expects($this->once())
 			->method('getPath')
 			->willReturn('/' . $path);
@@ -377,15 +347,11 @@ class CommentsPluginTest extends TestCase {
 
 		$requestData = json_encode($commentData);
 
-		$user = $this->getMockBuilder(IUser::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$user = $this->createMock(IUser::class);
 		$user->expects($this->never())
 			->method('getUID');
 
-		$node = $this->getMockBuilder(EntityCollection::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(EntityCollection::class);
 		$node->expects($this->once())
 			->method('getName')
 			->willReturn('files');
@@ -408,14 +374,8 @@ class CommentsPluginTest extends TestCase {
 			->with('/' . $path)
 			->willReturn($node);
 
-		$request = $this->getMockBuilder(RequestInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
-
-		$response = $this->getMockBuilder(ResponseInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
-
+		$request = $this->createMock(RequestInterface::class);
+		$response = $this->createMock(ResponseInterface::class);
 		$request->expects($this->once())
 			->method('getPath')
 			->willReturn('/' . $path);
@@ -470,16 +430,12 @@ class CommentsPluginTest extends TestCase {
 
 		$requestData = json_encode($commentData);
 
-		$user = $this->getMockBuilder(IUser::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$user = $this->createMock(IUser::class);
 		$user->expects($this->once())
 			->method('getUID')
 			->willReturn('alice');
 
-		$node = $this->getMockBuilder(EntityCollection::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(EntityCollection::class);
 		$node->expects($this->once())
 			->method('getName')
 			->willReturn('files');
@@ -505,14 +461,8 @@ class CommentsPluginTest extends TestCase {
 			->with('/' . $path)
 			->willReturn($node);
 
-		$request = $this->getMockBuilder(RequestInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
-
-		$response = $this->getMockBuilder(ResponseInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
-
+		$request = $this->createMock(RequestInterface::class);
+		$response = $this->createMock(ResponseInterface::class);
 		$request->expects($this->once())
 			->method('getPath')
 			->willReturn('/' . $path);
@@ -567,16 +517,12 @@ class CommentsPluginTest extends TestCase {
 
 		$requestData = json_encode($commentData);
 
-		$user = $this->getMockBuilder(IUser::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$user = $this->createMock(IUser::class);
 		$user->expects($this->once())
 			->method('getUID')
 			->willReturn('alice');
 
-		$node = $this->getMockBuilder(EntityCollection::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(EntityCollection::class);
 		$node->expects($this->once())
 			->method('getName')
 			->willReturn('files');
@@ -605,14 +551,8 @@ class CommentsPluginTest extends TestCase {
 			->with('/' . $path)
 			->willReturn($node);
 
-		$request = $this->getMockBuilder(RequestInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
-
-		$response = $this->getMockBuilder(ResponseInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
-
+		$request = $this->createMock(RequestInterface::class);
+		$response = $this->createMock(ResponseInterface::class);
 		$request->expects($this->once())
 			->method('getPath')
 			->willReturn('/' . $path);
@@ -650,9 +590,7 @@ class CommentsPluginTest extends TestCase {
 			->method('getNodeForPath')
 			->with('/' . $path)
 			->willReturn(
-				$this->getMockBuilder(INode::class)
-					->disableOriginalConstructor()
-					->getMock()
+				$this->createMock(INode::class)
 			);
 
 		$this->server->expects($this->any())
@@ -676,9 +614,7 @@ class CommentsPluginTest extends TestCase {
 			->method('getNodeForPath')
 			->with('/' . $path)
 			->willReturn(
-				$this->getMockBuilder(INode::class)
-					->disableOriginalConstructor()
-					->getMock()
+				$this->createMock(INode::class)
 			);
 
 		$this->server->expects($this->any())
@@ -711,18 +647,13 @@ class CommentsPluginTest extends TestCase {
 			]
 		];
 
-		$node = $this->getMockBuilder(EntityCollection::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(EntityCollection::class);
 		$node->expects($this->once())
 			->method('findChildren')
 			->with(5, 10, null)
 			->willReturn([]);
 
-		$response = $this->getMockBuilder(ResponseInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
-
+		$response = $this->createMock(ResponseInterface::class);
 		$response->expects($this->once())
 			->method('setHeader')
 			->with('Content-Type', 'application/xml; charset=utf-8');
@@ -771,18 +702,13 @@ class CommentsPluginTest extends TestCase {
 			]
 		];
 
-		$node = $this->getMockBuilder(EntityCollection::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(EntityCollection::class);
 		$node->expects($this->once())
 			->method('findChildren')
 			->with(5, 10, new DateTime($parameters[2]['value']))
 			->willReturn([]);
 
-		$response = $this->getMockBuilder(ResponseInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
-
+		$response = $this->createMock(ResponseInterface::class);
 		$response->expects($this->once())
 			->method('setHeader')
 			->with('Content-Type', 'application/xml; charset=utf-8');

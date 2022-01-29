@@ -82,7 +82,7 @@ class IMipPluginTest extends TestCase {
 		$this->mailMessage->method('setReplyTo')->willReturn($this->mailMessage);
 		$this->mailMessage->method('setTo')->willReturn($this->mailMessage);
 
-		$this->mailer = $this->getMockBuilder(IMailer::class)->disableOriginalConstructor()->getMock();
+		$this->mailer = $this->createMock(IMailer::class);
 		$this->mailer->method('createMessage')->willReturn($this->mailMessage);
 
 		$this->emailTemplate = $this->createMock(IEMailTemplate::class);
@@ -92,9 +92,9 @@ class IMipPluginTest extends TestCase {
 		$this->mailer->method('createAttachment')->willReturn($emailAttachment);
 
 		/** @var LoggerInterface|MockObject $logger */
-		$logger = $this->getMockBuilder(LoggerInterface::class)->disableOriginalConstructor()->getMock();
+		$logger = $this->createMock(LoggerInterface::class);
 
-		$timeFactory = $this->getMockBuilder(ITimeFactory::class)->disableOriginalConstructor()->getMock();
+		$timeFactory = $this->createMock(ITimeFactory::class);
 		$timeFactory->method('getTime')->willReturn(1496912528); // 2017-01-01
 
 		$this->config = $this->createMock(IConfig::class);

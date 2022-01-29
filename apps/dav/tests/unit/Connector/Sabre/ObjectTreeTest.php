@@ -183,18 +183,10 @@ class ObjectTreeTest extends TestCase {
 			$_SERVER['HTTP_OC_CHUNKED'] = true;
 		}
 
-		$rootNode = $this->getMockBuilder(Directory::class)
-			->disableOriginalConstructor()
-			->getMock();
-		$mountManager = $this->getMockBuilder(Manager::class)
-			->disableOriginalConstructor()
-			->getMock();
-		$view = $this->getMockBuilder(View::class)
-			->disableOriginalConstructor()
-			->getMock();
-		$fileInfo = $this->getMockBuilder(FileInfo::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$rootNode = $this->createMock(Directory::class);
+		$mountManager = $this->createMock(Manager::class);
+		$view = $this->createMock(View::class);
+		$fileInfo = $this->createMock(FileInfo::class);
 		$fileInfo->expects($this->once())
 			->method('getType')
 			->willReturn($type);
@@ -316,11 +308,8 @@ class ObjectTreeTest extends TestCase {
 				return [$storage, ltrim($path, '/')];
 			});
 
-		$rootNode = $this->getMockBuilder(Directory::class)
-			->disableOriginalConstructor()
-			->getMock();
-		$mountManager = $this->getMockBuilder(Manager::class)
-			->getMock();
+		$rootNode = $this->createMock(Directory::class);
+		$mountManager = $this->createMock(Manager::class);
 
 		$tree = new ObjectTree($rootNode);
 		$tree->init($rootNode, $view, $mountManager);

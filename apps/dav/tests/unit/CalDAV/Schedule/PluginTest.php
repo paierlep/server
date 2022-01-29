@@ -61,9 +61,7 @@ class PluginTest extends TestCase {
 		$this->server = $this->createMock(Server::class);
 		$this->config = $this->createMock(IConfig::class);
 
-		$response = $this->getMockBuilder(ResponseInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$response = $this->createMock(ResponseInterface::class);
 
 		$this->server->httpResponse = $response;
 		$this->server->xml = new Service();
@@ -263,19 +261,13 @@ class PluginTest extends TestCase {
 			0
 		);
 		/** @var IPrincipal|MockObject $node */
-		$node = $this->getMockBuilder(IPrincipal::class)
-			->disableOriginalConstructor()
-			->getMock();
-
+		$node = $this->createMock(IPrincipal::class);
 		$node->expects($this->once())
 			->method('getPrincipalUrl')
 			->with()
 			->willReturn($principalUri);
 
-		$calDAVPlugin = $this->getMockBuilder(CalDAVPlugin::class)
-			->disableOriginalConstructor()
-			->getMock();
-
+		$calDAVPlugin = $this->createMock(CalDAVPlugin::class);
 		$calDAVPlugin->expects($this->once())
 			->method('getCalendarHomeForPrincipal')
 			->willReturn($calendarHome);

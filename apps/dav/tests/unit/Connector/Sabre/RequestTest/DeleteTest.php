@@ -26,6 +26,8 @@ use Exception;
 use OCP\AppFramework\Http;
 use OCP\Files\FileInfo;
 use OCP\Lock\LockedException;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 /**
  * Class DeleteTest
@@ -37,7 +39,9 @@ use OCP\Lock\LockedException;
 class DeleteTest extends RequestTestCase {
 	/**
 	 * @throws LockedException
-	 * @throws Exception
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
+	 * @throws \Throwable
 	 */
 	public function testBasicUpload() {
 		$user = $this->getUniqueID();

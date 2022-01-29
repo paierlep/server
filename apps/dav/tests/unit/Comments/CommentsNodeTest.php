@@ -83,10 +83,7 @@ class CommentsNodeTest extends TestCase {
 	}
 
 	public function testDelete() {
-		$user = $this->getMockBuilder(IUser::class)
-			->disableOriginalConstructor()
-			->getMock();
-
+		$user = $this->createMock(IUser::class);
 		$user->expects($this->once())
 			->method('getUID')
 			->willReturn('alice');
@@ -118,10 +115,7 @@ class CommentsNodeTest extends TestCase {
 	public function testDeleteForbidden() {
 		$this->expectException(Forbidden::class);
 
-		$user = $this->getMockBuilder(IUser::class)
-			->disableOriginalConstructor()
-			->getMock();
-
+		$user = $this->createMock(IUser::class);
 		$user->expects($this->once())
 			->method('getUID')
 			->willReturn('mallory');
@@ -173,10 +167,7 @@ class CommentsNodeTest extends TestCase {
 	public function testUpdateComment() {
 		$msg = 'Hello Earth';
 
-		$user = $this->getMockBuilder(IUser::class)
-			->disableOriginalConstructor()
-			->getMock();
-
+		$user = $this->createMock(IUser::class);
 		$user->expects($this->once())
 			->method('getUID')
 			->willReturn('alice');
@@ -214,10 +205,7 @@ class CommentsNodeTest extends TestCase {
 
 		$msg = null;
 
-		$user = $this->getMockBuilder(IUser::class)
-			->disableOriginalConstructor()
-			->getMock();
-
+		$user = $this->createMock(IUser::class);
 		$user->expects($this->once())
 			->method('getUID')
 			->willReturn('alice');
@@ -253,10 +241,7 @@ class CommentsNodeTest extends TestCase {
 		$this->expectException(BadRequest::class);
 		$this->expectExceptionMessage('Message exceeds allowed character limit of');
 
-		$user = $this->getMockBuilder(IUser::class)
-			->disableOriginalConstructor()
-			->getMock();
-
+		$user = $this->createMock(IUser::class);
 		$user->expects($this->once())
 			->method('getUID')
 			->willReturn('alice');
@@ -296,10 +281,7 @@ class CommentsNodeTest extends TestCase {
 
 		$msg = 'HaXX0r';
 
-		$user = $this->getMockBuilder(IUser::class)
-			->disableOriginalConstructor()
-			->getMock();
-
+		$user = $this->createMock(IUser::class);
 		$user->expects($this->once())
 			->method('getUID')
 			->willReturn('mallory');
@@ -334,10 +316,7 @@ class CommentsNodeTest extends TestCase {
 
 		$msg = 'HaXX0r';
 
-		$user = $this->getMockBuilder(IUser::class)
-			->disableOriginalConstructor()
-			->getMock();
-
+		$user = $this->createMock(IUser::class);
 		$user->expects($this->never())
 			->method('getUID');
 
@@ -385,10 +364,7 @@ class CommentsNodeTest extends TestCase {
 	}
 
 	public function testPropPatch() {
-		$propPatch = $this->getMockBuilder(PropPatch::class)
-			->disableOriginalConstructor()
-			->getMock();
-
+		$propPatch = $this->createMock(PropPatch::class);
 		$propPatch->expects($this->once())
 			->method('handle')
 			->with('{http://owncloud.org/ns}message');
@@ -496,9 +472,7 @@ class CommentsNodeTest extends TestCase {
 			->method('getReferenceId')
 			->willReturn($expected[$ns . 'referenceId']);
 
-		$user = $this->getMockBuilder(IUser::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$user = $this->createMock(IUser::class);
 		$user->expects($this->once())
 			->method('getDisplayName')
 			->willReturn($expected[$ns . 'actorDisplayName']);
@@ -551,9 +525,7 @@ class CommentsNodeTest extends TestCase {
 		$this->userSession->expects($this->once())
 			->method('getUser')
 			->willReturn(
-				$this->getMockBuilder(IUser::class)
-					->disableOriginalConstructor()
-					->getMock()
+				$this->createMock(IUser::class)
 			);
 
 		$properties = $this->node->getProperties(null);

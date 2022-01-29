@@ -31,6 +31,7 @@ use OCA\DAV\Connector\Sabre\File;
 use OCP\Comments\ICommentsManager;
 use OCP\IUser;
 use OCP\IUserSession;
+use PHPUnit\Framework\MockObject\MockObject;
 use Sabre\DAV\INode;
 use Sabre\DAV\PropFind;
 use Sabre\DAV\Server;
@@ -71,13 +72,9 @@ class CommentsPropertiesPluginTest extends TestCase {
 
 	/**
 	 * @dataProvider nodeProvider
-	 * @param $node
-	 * @param $expectedSuccessful
 	 */
-	public function testHandleGetProperties($node, $expectedSuccessful) {
-		$propFind = $this->getMockBuilder(PropFind::class)
-			->disableOriginalConstructor()
-			->getMock();
+	public function testHandleGetProperties($node, bool $expectedSuccessful) {
+		$propFind = $this->createMock(PropFind::class);
 
 		if ($expectedSuccessful) {
 			$propFind->expects($this->exactly(3))
@@ -118,9 +115,7 @@ class CommentsPropertiesPluginTest extends TestCase {
 	public function userProvider(): array {
 		return [
 			[
-				$this->getMockBuilder(IUser::class)
-					->disableOriginalConstructor()
-					->getMock()
+				$this->createMock(IUser::class)
 			],
 			[null]
 		];
@@ -128,12 +123,10 @@ class CommentsPropertiesPluginTest extends TestCase {
 
 	/**
 	 * @dataProvider userProvider
-	 * @param $user
+	 * @param IUser|MockObject|null $user
 	 */
 	public function testGetUnreadCount($user) {
-		$node = $this->getMockBuilder(File::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(File::class);
 		$node->expects($this->any())
 			->method('getId')
 			->willReturn(4567);

@@ -49,9 +49,7 @@ class DummyGetResponsePluginTest extends TestCase {
 
 	public function testInitialize() {
 		/** @var Server|MockObject $server */
-		$server = $this->getMockBuilder(Server::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$server = $this->createMock(Server::class);
 		$server
 			->expects($this->once())
 			->method('on')

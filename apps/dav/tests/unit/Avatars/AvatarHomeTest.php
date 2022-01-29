@@ -51,7 +51,7 @@ class AvatarHomeTest extends TestCase {
 	/**
 	 * @dataProvider providesForbiddenMethods
 	 */
-	public function testForbiddenMethods($method) {
+	public function testForbiddenMethods(string $method) {
 		$this->expectException(Forbidden::class);
 
 		$this->home->$method('');
@@ -85,7 +85,7 @@ class AvatarHomeTest extends TestCase {
 	 * @dataProvider providesTestGetChild
 	 * @throws MethodNotAllowed|NotFound
 	 */
-	public function testGetChild($expectedException, $hasAvatar, $path) {
+	public function testGetChild(?string $expectedException, bool $hasAvatar, string $path) {
 		if ($expectedException !== null) {
 			$this->expectException($expectedException);
 		}
@@ -112,7 +112,7 @@ class AvatarHomeTest extends TestCase {
 	/**
 	 * @dataProvider providesTestGetChild
 	 */
-	public function testChildExists($expectedException, $hasAvatar, $path) {
+	public function testChildExists(?string $expectedException, bool $hasAvatar, string $path) {
 		$avatar = $this->createMock(IAvatar::class);
 		$avatar->method('exists')->willReturn($hasAvatar);
 

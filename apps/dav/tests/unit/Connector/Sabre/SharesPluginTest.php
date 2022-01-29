@@ -89,10 +89,8 @@ class SharesPluginTest extends TestCase {
 	/**
 	 * @dataProvider sharesGetPropertiesDataProvider
 	 */
-	public function testGetProperties($shareTypes) {
-		$sabreNode = $this->getMockBuilder(Node::class)
-			->disableOriginalConstructor()
-			->getMock();
+	public function testGetProperties(array $shareTypes) {
+		$sabreNode = $this->createMock(Node::class);
 		$sabreNode->expects($this->any())
 			->method('getId')
 			->willReturn(123);
@@ -101,9 +99,7 @@ class SharesPluginTest extends TestCase {
 			->willReturn('/subdir');
 
 		// node API nodes
-		$node = $this->getMockBuilder(Folder::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$node = $this->createMock(Folder::class);
 
 		$this->userFolder->expects($this->once())
 			->method('get')
@@ -150,7 +146,7 @@ class SharesPluginTest extends TestCase {
 	/**
 	 * @dataProvider sharesGetPropertiesDataProvider
 	 */
-	public function testPreloadThenGetProperties($shareTypes) {
+	public function testPreloadThenGetProperties(array $shareTypes) {
 		$sabreNode1 = $this->createMock(File::class);
 		$sabreNode1->method('getId')
 			->willReturn(111);
@@ -186,7 +182,7 @@ class SharesPluginTest extends TestCase {
 			->willReturn($node);
 
 		$dummyShares = array_map(function ($type) {
-			$share = $this->getMockBuilder(IShare::class)->getMock();
+			$share = $this->createMock(IShare::class);
 			$share->expects($this->any())
 				->method('getShareType')
 				->willReturn($type);

@@ -40,9 +40,11 @@ use OC\Files\Storage\Temporary;
 use OC\Files\Storage\Wrapper\PermissionsMask;
 use OC\Files\View;
 use OC\Security\SecureRandom;
+use OCA\DAV\Connector\Sabre\Exception\EntityTooLarge;
 use OCA\DAV\Connector\Sabre\Exception\FileLocked;
 use OCA\DAV\Connector\Sabre\Exception\Forbidden;
 use OCA\DAV\Connector\Sabre\Exception\InvalidPath;
+use OCA\DAV\Connector\Sabre\Exception\UnsupportedMediaType;
 use OCA\DAV\Connector\Sabre\File;
 use OCP\Constants;
 use OCP\Encryption\Exceptions\GenericEncryptionException;
@@ -157,53 +159,53 @@ class FileTest extends TestCase {
 			[
 				// return false
 				null,
-				'\Sabre\Dav\Exception',
+				Exception::class,
 				false
 			],
 			[
 				new NotPermittedException(),
-				'Sabre\DAV\Exception\Forbidden'
+				Exception\Forbidden::class
 			],
 			[
 				new EntityTooLargeException(),
-				'OCA\DAV\Connector\Sabre\Exception\EntityTooLarge'
+				EntityTooLarge::class
 			],
 			[
 				new InvalidContentException(),
-				'OCA\DAV\Connector\Sabre\Exception\UnsupportedMediaType'
+				UnsupportedMediaType::class
 			],
 			[
 				new InvalidPathException(),
-				'Sabre\DAV\Exception\Forbidden'
+				Exception\Forbidden::class
 			],
 			[
 				new ForbiddenException('', true),
-				'OCA\DAV\Connector\Sabre\Exception\Forbidden'
+				Forbidden::class
 			],
 			[
 				new LockNotAcquiredException('/test.txt', 1),
-				'OCA\DAV\Connector\Sabre\Exception\FileLocked'
+				FileLocked::class
 			],
 			[
 				new LockedException('/test.txt'),
-				'OCA\DAV\Connector\Sabre\Exception\FileLocked'
+				FileLocked::class
 			],
 			[
 				new GenericEncryptionException(),
-				'Sabre\DAV\Exception\ServiceUnavailable'
+				ServiceUnavailable::class
 			],
 			[
 				new StorageNotAvailableException(),
-				'Sabre\DAV\Exception\ServiceUnavailable'
+				ServiceUnavailable::class
 			],
 			[
 				new Exception('Generic sabre exception'),
-				'Sabre\DAV\Exception',
+				Exception::class,
 				false
 			],
 			[
 				new \Exception('Generic exception'),
-				'Sabre\DAV\Exception'
+				Exception::class
 			],
 		];
 	}
@@ -516,7 +518,7 @@ class FileTest extends TestCase {
 	 * @throws InvalidPath
 	 * @throws LockedException|InvalidPathException
 	 */
-	public function testChunkedPutLegalMtime($requestMtime, $resultMtime) {
+	public function testChunkedPutLegalMtime($requestMtime, ?int $resultMtime) {
 		$request = new Request([
 			'server' => [
 				'HTTP_X_OC_MTIME' => $requestMtime,
@@ -1073,8 +1075,7 @@ class FileTest extends TestCase {
 	 */
 	public function testDeleteWhenAllowed() {
 		// setup
-		$view = $this->getMockBuilder(View::class)
-			->getMock();
+		$view = $this->createMock(View::class);
 
 		$view->expects($this->once())
 			->method('unlink')
@@ -1099,8 +1100,7 @@ class FileTest extends TestCase {
 		$this->expectException(Exception\Forbidden::class);
 
 		// setup
-		$view = $this->getMockBuilder(View::class)
-			->getMock();
+		$view = $this->createMock(View::class);
 
 		$info = new FileInfo('/test.txt', $this->getMockStorage(), null, [
 			'permissions' => 0
@@ -1121,8 +1121,7 @@ class FileTest extends TestCase {
 		$this->expectException(Exception\Forbidden::class);
 
 		// setup
-		$view = $this->getMockBuilder(View::class)
-			->getMock();
+		$view = $this->createMock(View::class);
 
 		// but fails
 		$view->expects($this->once())
@@ -1149,8 +1148,7 @@ class FileTest extends TestCase {
 		$this->expectException(Forbidden::class);
 
 		// setup
-		$view = $this->getMockBuilder(View::class)
-			->getMock();
+		$view = $this->createMock(View::class);
 
 		// but fails
 		$view->expects($this->once())

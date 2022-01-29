@@ -79,15 +79,10 @@ class CustomPropertiesBackendTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 		$this->server = new Server();
-		$tree = $this->getMockBuilder(Tree::class)
-			->disableOriginalConstructor()
-			->getMock();
-
+		$tree = $this->createMock(Tree::class);
 		$userId = $this->getUniqueID('testcustompropertiesuser');
 
-		$this->user = $this->getMockBuilder(IUser::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$this->user = $this->createMock(IUser::class);
 		$this->user->expects($this->any())
 			->method('getUID')
 			->willReturn($userId);

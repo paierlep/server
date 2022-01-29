@@ -34,8 +34,6 @@ class PublicCalendarTest extends CalendarTest {
 
 	/**
 	 * @dataProvider providesConfidentialClassificationData
-	 * @param int $expectedChildren
-	 * @param bool $isShared
 	 */
 	public function testPrivateClassification(int $expectedChildren, bool $isShared) {
 		$calObject0 = ['uri' => 'event-0', 'classification' => CalDavBackend::CLASSIFICATION_PUBLIC];
@@ -43,7 +41,7 @@ class PublicCalendarTest extends CalendarTest {
 		$calObject2 = ['uri' => 'event-2', 'classification' => CalDavBackend::CLASSIFICATION_PRIVATE];
 
 		/** @var \PHPUnit\Framework\MockObject\MockObject | CalDavBackend $backend */
-		$backend = $this->getMockBuilder(CalDavBackend::class)->disableOriginalConstructor()->getMock();
+		$backend = $this->createMock(CalDavBackend::class);
 		$backend->expects($this->any())->method('getCalendarObjects')->willReturn([
 			$calObject0, $calObject1, $calObject2
 		]);
@@ -76,8 +74,6 @@ class PublicCalendarTest extends CalendarTest {
 
 	/**
 	 * @dataProvider providesConfidentialClassificationData
-	 * @param int $expectedChildren
-	 * @param bool $isShared
 	 */
 	public function testConfidentialClassification(int $expectedChildren, bool $isShared) {
 		$start = '20160609';
@@ -130,7 +126,7 @@ EOD;
 		$calObject2 = ['uri' => 'event-2', 'classification' => CalDavBackend::CLASSIFICATION_PRIVATE];
 
 		/** @var \PHPUnit\Framework\MockObject\MockObject | CalDavBackend $backend */
-		$backend = $this->getMockBuilder(CalDavBackend::class)->disableOriginalConstructor()->getMock();
+		$backend = $this->createMock(CalDavBackend::class);
 		$backend->expects($this->any())->method('getCalendarObjects')->willReturn([
 			$calObject0, $calObject1, $calObject2
 		]);

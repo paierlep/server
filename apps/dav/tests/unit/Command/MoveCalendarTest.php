@@ -93,7 +93,7 @@ class MoveCalendarTest extends TestCase {
 	 * @param $userOriginExists
 	 * @param $userDestinationExists
 	 */
-	public function testWithBadUserOrigin($userOriginExists, $userDestinationExists) {
+	public function testWithBadUserOrigin(bool $userOriginExists, bool $userDestinationExists) {
 		$this->expectException(InvalidArgumentException::class);
 
 		if ($userDestinationExists) {

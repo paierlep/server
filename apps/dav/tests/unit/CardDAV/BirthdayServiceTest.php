@@ -99,7 +99,7 @@ class BirthdayServiceTest extends TestCase {
 		if ($expectedSummary === null) {
 			$this->assertNull($cal);
 		} else {
-			$this->assertInstanceOf('Sabre\VObject\Component\VCalendar', $cal);
+			$this->assertInstanceOf(VCalendar::class, $cal);
 			$this->assertEquals('-//IDN nextcloud.com//Birthday calendar//EN', $cal->PRODID->getValue());
 			$this->assertTrue(isset($cal->VEVENT));
 			$this->assertEquals('FREQ=YEARLY', $cal->VEVENT->RRULE->getValue());
@@ -231,7 +231,7 @@ class BirthdayServiceTest extends TestCase {
 	/**
 	 * @dataProvider providesCardChanges
 	 */
-	public function testOnCardChanged($expectedOp) {
+	public function testOnCardChanged(string $expectedOp) {
 		$this->config->expects($this->once())
 			->method('getAppValue')
 			->with('dav', 'generateBirthdayCalendar', 'yes')
@@ -300,11 +300,8 @@ class BirthdayServiceTest extends TestCase {
 
 	/**
 	 * @dataProvider providesBirthday
-	 * @param $expected
-	 * @param $old
-	 * @param $new
 	 */
-	public function testBirthdayEvenChanged($expected, $old, $new) {
+	public function testBirthdayEvenChanged(bool $expected, string $old, string $new) {
 		$new = Reader::read($new);
 		$this->assertEquals($expected, $this->service->birthdayEvenChanged($old, $new));
 	}

@@ -32,6 +32,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Sabre\DAV\INode;
 use Sabre\DAV\PropFind;
 use Sabre\DAV\Server;
+use Sabre\DAV\Xml\Service;
 use Sabre\HTTP\RequestInterface;
 use Sabre\HTTP\Response;
 use Sabre\HTTP\ResponseInterface;
@@ -55,18 +56,14 @@ class FakeLockerPluginTest extends TestCase {
 		/** @var Server|MockObject $server */
 		$server = $this->createMock(Server::class);
 		$server
-			->expects($this->exactly(3))
+			->expects($this->exactly(4))
 			->method('on')
 			->withConsecutive(
 				['method:LOCK', [$this->fakeLockerPlugin, 'fakeLockProvider'], 1],
 				['method:UNLOCK', [$this->fakeLockerPlugin, 'fakeUnlockProvider'], 1],
-				['propFind', [$this->fakeLockerPlugin, 'propFind']]
+				['propFind', [$this->fakeLockerPlugin, 'propFind']],
+				['validateTokens', [$this->fakeLockerPlugin, 'validateTokens']]
 			);
-
-		$server
-			->expects($this->once())
-			->method('on')
-			->with('validateTokens', [$this->fakeLockerPlugin, 'validateTokens']);
 
 		$this->fakeLockerPlugin->initialize($server);
 	}
@@ -143,20 +140,15 @@ class FakeLockerPluginTest extends TestCase {
 	 * @param array $expected
 	 */
 	public function testValidateTokens(array $input, array $expected) {
-		$request = $this->getMockBuilder(RequestInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$request = $this->createMock(RequestInterface::class);
 		$this->fakeLockerPlugin->validateTokens($request, $input);
 		$this->assertSame($expected, $input);
 	}
 
 	public function testFakeLockProvider() {
-		$request = $this->getMockBuilder(RequestInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$request = $this->createMock(RequestInterface::class);
 		$response = new Response();
-		$server = $this->getMockBuilder(Server::class)
-			->getMock();
+		$server = $this->getMockBuilder(Server::class)->getMock();
 		$this->fakeLockerPlugin->initialize($server);
 
 		$request->expects($this->exactly(2))
@@ -171,12 +163,8 @@ class FakeLockerPluginTest extends TestCase {
 	}
 
 	public function testFakeUnlockProvider() {
-		$request = $this->getMockBuilder(RequestInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
-		$response = $this->getMockBuilder(ResponseInterface::class)
-			->disableOriginalConstructor()
-			->getMock();
+		$request = $this->createMock(RequestInterface::class);
+		$response = $this->createMock(ResponseInterface::class);
 
 		$response->expects($this->once())
 				->method('setStatus')

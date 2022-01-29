@@ -51,16 +51,12 @@ class PluginTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		$config = $this->getMockBuilder(IConfig::class)->
-			disableOriginalConstructor()->
-			getMock();
+		$config = $this->createMock(IConfig::class);
 		$config->expects($this->any())->method('getSystemValue')
 			->with($this->equalTo('secret'))
 			->willReturn('mysecret');
 
-		$urlGenerator = $this->getMockBuilder(IURLGenerator::class)->
-			disableOriginalConstructor()->
-			getMock();
+		$urlGenerator = $this->createMock(IURLGenerator::class);
 
 		/** @var IRequest $request */
 		$this->plugin = new PublishPlugin($config, $urlGenerator);
@@ -68,9 +64,7 @@ class PluginTest extends TestCase {
 		$root = new SimpleCollection('calendars');
 		$server = new Server($root);
 		/** @var SimpleCollection $node */
-		$this->book = $this->getMockBuilder(Calendar::class)->
-			disableOriginalConstructor()->
-			getMock();
+		$this->book = $this->createMock(Calendar::class);
 		$this->book->method('getName')->willReturn('cal1');
 		$root->addChild($this->book);
 		$this->plugin->initialize($server);
